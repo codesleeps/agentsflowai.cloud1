@@ -3,6 +3,36 @@ import { AI_AGENTS } from '@/shared/models/ai-agents';
 import { AIAgentRequestSchema, validateAndSanitize } from '@/lib/validation-schemas';
 import { requireAuth } from '@/lib/auth-helpers';
 import { handleApiError } from '@/lib/api-errors';
+import * as cheerio from 'cheerio';
+import axios from 'axios';
+
+// Helper to extract text from URL
+async function fetchUrlContent(url: string): Promise<string | null> {
+  try {
+    const response = await axios.get(url, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; AgentsFlowAI/1.0; +https://agentsflowai.cloud)'
+      }
+    });
+
+    const $ = cheerio.load(response.data);
+
+    // Remove scripts, styles, and other non-content elements
+    $('script').remove();
+    $('style').remove();
+    $('nav').remove();
+    $('footer').remove();
+    $('header').remove();
+
+    // extract text
+    const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 15000); // Limit to ~15k chars
+    return text;
+  } catch (error) {
+    console.error(`Failed to fetch URL ${url}:`, error);
+    return null;
+  }
+}
 
 // Get all agents
 export async function GET(request: NextRequest) {
@@ -29,6 +59,26 @@ export async function POST(request: NextRequest) {
     const validatedData = validateAndSanitize(AIAgentRequestSchema, body);
     const { agentId, message, conversationHistory = [] } = validatedData;
 
+    // Helper to find URLs in message
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = message.match(urlRegex);
+
+    let enrichedMessage = message;
+
+    // If URL found, scrape it (limit to first URL for now)
+    if (urls && urls.length > 0) {
+      const urlToScrape = urls[0];
+      console.log(`Detected URL: ${urlToScrape}, fetching content...`);
+      const scrapedContent = await fetchUrlContent(urlToScrape);
+
+      if (scrapedContent) {
+        console.log(`Successfully scraped ${scrapedContent.length} chars.`);
+        enrichedMessage = `${message}\n\n[System Context: The user provided a URL. Here is the scraped content of ${urlToScrape} for your analysis:]\n\n${scrapedContent}`;
+      } else {
+        enrichedMessage = `${message}\n\n[System Context: The user provided a URL (${urlToScrape}), but the system failed to scrape its content. Please ask the user to provide text directly or check the URL.]`;
+      }
+    }
+
     // Find the agent
     const agent = AI_AGENTS.find((a) => a.id === agentId);
     if (!agent) {
@@ -42,7 +92,7 @@ export async function POST(request: NextRequest) {
         role: msg.role,
         content: msg.content,
       })),
-      { role: 'user', content: message },
+      { role: 'user', content: enrichedMessage },
     ];
 
     // Determine provider and call appropriate API
