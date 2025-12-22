@@ -21,7 +21,7 @@ class RateLimiter {
 
   private getConfig(request: NextRequest): RateLimitConfig {
     const path = request.nextUrl.pathname;
-    
+
     // Different limits for different route groups
     if (path.includes('/api/ai/')) {
       return { windowMs: 60000, maxRequests: 20 }; // 20 requests per minute for AI routes
@@ -34,7 +34,7 @@ class RateLimiter {
 
   private getKey(request: NextRequest): string {
     const userId = request.headers.get('X-User-Id');
-    const ip = request.ip || 'unknown';
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
     return userId || ip;
   }
 
@@ -58,7 +58,7 @@ class RateLimiter {
     const now = Date.now();
 
     let entry = this.storage.get(key);
-    
+
     if (!entry) {
       entry = {
         requests: [],
