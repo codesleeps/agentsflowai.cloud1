@@ -30,6 +30,7 @@ import {
 
 const mainNavItems = [
   { href: "/", label: "Dashboard", icon: Home },
+  { href: "/ai-agents", label: "AI Agents", icon: Bot },
   { href: "/chat", label: "AI Chat Agent", icon: MessageSquare },
   { href: "/leads", label: "Leads", icon: Users },
   { href: "/services", label: "Services", icon: Package },

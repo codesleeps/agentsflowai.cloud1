@@ -178,10 +178,19 @@ export default function HomePage() {
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
               <div className="flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <span className="font-medium">Analytics Agent</span>
+                <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="font-medium">Web Developer</span>
               </div>
               <Badge variant="secondary" className="bg-blue-500/20 text-blue-700 dark:text-blue-400">
+                Active
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-purple-500" />
+                <span className="font-medium">Analytics Agent</span>
+              </div>
+              <Badge variant="secondary" className="bg-purple-500/20 text-purple-700 dark:text-purple-400">
                 Standby
               </Badge>
             </div>
