@@ -48,42 +48,47 @@ export async function POST(request: NextRequest) {
     const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 
     // Call Ollama chat API
-    const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: agent.model,
-        messages,
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          num_predict: 2048,
-        },
-      }),
-    });
+    try {
+      const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: agent.model,
+          messages,
+          stream: false,
+          options: {
+            temperature: 0.7,
+            top_p: 0.9,
+            num_predict: 2048,
+          },
+        }),
+      });
 
-    if (!ollamaResponse.ok) {
-      // Fallback to built-in AI if Ollama is not available
-      console.log('Ollama not available, using fallback response');
+      if (!ollamaResponse.ok) {
+        throw new Error(`Ollama API returned ${ollamaResponse.status}`);
+      }
+
+      const data = await ollamaResponse.json();
+
+      return NextResponse.json({
+        response: data.message?.content || data.response,
+        model: agent.model,
+        agentId: agent.id,
+        agentName: agent.name,
+        tokensUsed: data.eval_count,
+        generationTime: data.total_duration,
+      });
+    } catch (error) {
+      // Fallback to built-in AI if Ollama is not available (connection error or non-200 response)
+      console.log('Ollama not available, using fallback response:', error);
       return NextResponse.json({
         response: generateFallbackResponse(agent.id, message),
         model: 'fallback',
         agentId: agent.id,
         agentName: agent.name,
+        note: "Ollama is currently offline. Using offline fallback mode."
       });
     }
-
-    const data = await ollamaResponse.json();
-
-    return NextResponse.json({
-      response: data.message?.content || data.response,
-      model: agent.model,
-      agentId: agent.id,
-      agentName: agent.name,
-      tokensUsed: data.eval_count,
-      generationTime: data.total_duration,
-    });
   } catch (error) {
     return handleApiError(error);
   }
