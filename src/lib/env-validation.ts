@@ -9,10 +9,11 @@ const envSchema = z.object({
 
   // Vybe Integration
   VYBE_SERVER_SECRET: z.string().min(32, 'VYBE_SERVER_SECRET must be at least 32 characters'),
-  
+  NEXT_PUBLIC_VYBE_INTEGRATIONS_DOMAIN: z.string().url().optional(),
+
   // AI Services
   OLLAMA_BASE_URL: z.string().url('OLLAMA_BASE_URL must be a valid URL'),
-  
+
   // Application
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   NEXT_PUBLIC_APP_URL: z.string().url('NEXT_PUBLIC_APP_URL must be a valid URL').optional(),
@@ -39,7 +40,7 @@ export function validateEnv(): Env {
 
   try {
     validatedEnv = envSchema.parse(process.env);
-    
+
     // Additional validation for production
     if (validatedEnv.NODE_ENV === 'production') {
       if (!validatedEnv.NEXT_PUBLIC_APP_URL) {
