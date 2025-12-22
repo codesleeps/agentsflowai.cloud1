@@ -5,10 +5,10 @@ import { requireAuth } from '@/lib/auth-helpers';
 import { handleApiError } from '@/lib/api-errors';
 
 // Get all agents
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    await requireAuth(new Request('http://localhost:3000/api/ai/agents'));
+    await requireAuth(request);
 
     return NextResponse.json(AI_AGENTS);
   } catch (error) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     await requireAuth(request);
 
     const body = await request.json();
-    
+
     // Validate input using Zod schema
     const validatedData = validateAndSanitize(AIAgentRequestSchema, body);
     const { agentId, message, conversationHistory = [] } = validatedData;
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
 function generateFallbackResponse(agentId: string, message: string): string {
   const lowercaseMessage = message.toLowerCase();
-  
+
   switch (agentId) {
     case 'web-dev-agent':
       if (lowercaseMessage.includes('react') || lowercaseMessage.includes('component')) {
