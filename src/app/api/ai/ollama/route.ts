@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     await requireAuth(request);
 
     const body = await request.json();
-    
+
     // Validate input using Zod schema
     const validatedData = validateAndSanitize(OllamaRequestSchema, body);
     const { action, ...params } = validatedData;
@@ -34,12 +34,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleGenerate(params: {
-  model?: string;
-  prompt?: string;
-  system?: string;
-  options?: Record<string, unknown>;
-}) {
+async function handleGenerate(params: any) {
   const { model, prompt, system, options } = params;
 
   // Validate required parameters
@@ -78,11 +73,7 @@ async function handleGenerate(params: {
   return NextResponse.json(data);
 }
 
-async function handleChat(params: {
-  model?: string;
-  messages?: { role: string; content: string }[];
-  options?: Record<string, unknown>;
-}) {
+async function handleChat(params: any) {
   const { model, messages, options } = params;
 
   // Validate required parameters
@@ -139,7 +130,7 @@ async function handleListModels() {
   return NextResponse.json(data);
 }
 
-async function handlePullModel(params: { name?: string }) {
+async function handlePullModel(params: any) {
   const { name } = params;
 
   // Validate required parameters
