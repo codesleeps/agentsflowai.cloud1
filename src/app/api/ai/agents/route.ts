@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     await requireAuth(request);
 
     const body = await request.json();
+    console.log('AI Agent Request:', JSON.stringify(body, null, 2));
 
     // Validate input using Zod schema
     const validatedData = validateAndSanitize(AIAgentRequestSchema, body);
