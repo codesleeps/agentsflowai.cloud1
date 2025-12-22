@@ -42,7 +42,7 @@ const mainNavItems = [
 export function Sidebar() {
   const { data: session } = getAuthClient();
   const { data: activeOrganization } = getAuthActiveOrganization();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const pathname = usePathname();
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -59,14 +59,14 @@ export function Sidebar() {
         <div className="flex items-center justify-between px-[2px] py-2 gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <SidebarTrigger className="shrink-0" />
-            {state === "expanded" && (
+            {(state === "expanded" || isMobile) && (
               <span className="font-semibold text-sidebar-foreground truncate flex items-center gap-2">
                 <Bot className="h-5 w-5 text-primary" />
                 AgentsFlowAI
               </span>
             )}
           </div>
-          {state === "expanded" && <ThemeToggle />}
+          {(state === "expanded" || isMobile) && <ThemeToggle />}
         </div>
       </SidebarHeader>
       <SidebarContent>
