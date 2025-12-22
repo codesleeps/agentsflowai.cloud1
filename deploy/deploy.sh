@@ -78,7 +78,7 @@ pm2 save
 # ===========================================
 log_info "Running health check..."
 sleep 10
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3005/api/health)
 
 if [ "$HTTP_CODE" == "200" ]; then
     log_info "Health check passed! (HTTP $HTTP_CODE)"
