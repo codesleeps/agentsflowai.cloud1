@@ -100,6 +100,6 @@ echo "============================================="
 echo " Deployment Complete!"
 echo "============================================="
 echo ""
-log_info "Application is running at https://yourdomain.com"
+log_info "Application is running at https://agentsflowai.cloud"
 echo ""
 pm2 status

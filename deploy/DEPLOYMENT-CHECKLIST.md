@@ -61,7 +61,7 @@ chmod 700 /home/deploy/.ssh
 chmod 600 /home/deploy/.ssh/authorized_keys
 
 # Test login (new terminal)
-ssh deploy@your-server-ip
+ssh deploy@72.61.16.111
 ```
 
 ### Step 3: Configure Nginx
@@ -71,7 +71,7 @@ sudo cp /var/www/agentsflow-ai/deploy/nginx.conf /etc/nginx/sites-available/agen
 
 # Edit with your domain
 sudo nano /etc/nginx/sites-available/agentsflow-ai
-# Replace: yourdomain.com with your actual domain
+# Replace: yourdomain.com with agentsflowai.cloud
 
 # Enable site
 sudo ln -s /etc/nginx/sites-available/agentsflow-ai /etc/nginx/sites-enabled/
@@ -85,7 +85,7 @@ sudo systemctl reload nginx
 ### Step 4: SSL Certificate
 ```bash
 # Get SSL certificate
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+sudo certbot --nginx -d agentsflowai.cloud -d www.agentsflowai.cloud
 
 # Verify auto-renewal
 sudo certbot renew --dry-run
@@ -132,7 +132,7 @@ sudo systemctl restart sshd
 ### Manual Deployment
 ```bash
 # SSH as deploy user
-ssh deploy@your-server-ip
+ssh deploy@72.61.16.111
 
 # Navigate to app directory
 cd /var/www/agentsflow-ai
@@ -154,7 +154,7 @@ pm2 reload ecosystem.config.js --env production
 1. Push to `main` branch
 2. CI pipeline runs tests
 3. Deploy pipeline runs automatically
-4. Verify at https://yourdomain.com/api/health
+4. Verify at https://agentsflowai.cloud/api/health
 
 ---
 
