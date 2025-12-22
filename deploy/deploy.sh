@@ -68,13 +68,6 @@ npm run build
 log_info "Restarting application..."
 pm2 reload ecosystem.config.cjs --env production || pm2 start ecosystem.config.cjs --env production
 
-# ===========================================
-# 6. Update Nginx Config
-# ===========================================
-log_info "Updating Nginx configuration..."
-sudo cp deploy/nginx.conf /etc/nginx/sites-available/agentsflow-ai
-sudo nginx -t && sudo systemctl reload nginx
-log_info "Nginx configuration updated and reloaded"
 
 # ===========================================
 # 6. Save PM2 Process List
