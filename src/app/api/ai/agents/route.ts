@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Build the messages array for Ollama
     const messages = [
       { role: 'system', content: agent.systemPrompt },
-      ...conversationHistory.map((msg: { role: string; content: string }) => ({
+      ...(conversationHistory || []).map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),
