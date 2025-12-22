@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "n/6Y#PRl(.ovLy@D,veW"
+set api_key "AIzaSyBnNPQEUrO4-6VQKMIl55lO2WQl6m4YX8s"
+
+spawn ssh root@72.61.16.111
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Append or replace GOOGLE_API_KEY in the env file
+# First, remove any existing GOOGLE_API_KEY
+send "sed -i '/GOOGLE_API_KEY=/d' /var/www/agentsflow-ai/.env.production.local\r"
+expect "# "
+
+# Add the new key
+send "echo '\nGOOGLE_API_KEY=$api_key' >> /var/www/agentsflow-ai/.env.production.local\r"
+expect "# "
+
+# Restart PM2 to pick up changes (as deploy user)
+send "su - deploy\r"
+expect "$ "
+send "pm2 reload agentsflow-ai\r"
+expect "$ "
+send "exit\r"
+expect "# "
+
+send "exit\r"
+expect eof

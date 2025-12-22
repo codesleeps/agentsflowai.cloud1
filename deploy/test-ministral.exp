@@ -5,13 +5,16 @@ spawn ssh root@72.61.16.111
 expect "password:"
 send "$password\r"
 expect "# "
-send "tail -n 20 /var/log/nginx/agentsflow-ai-error.log\r"
-expect "# "
-send "su - deploy\r"
-expect "$ "
-send "pm2 logs agentsflow-ai --lines 50 --nostream\r"
-expect "$ "
-send "exit\r"
+
+send "ollama run ministral-3:3b 'Say hello!'\r"
+expect {
+    "Hello" {
+        puts "Ministral works!"
+    }
+    "Error" {
+        puts "Ministral failed."
+    }
+}
 expect "# "
 send "exit\r"
 expect eof

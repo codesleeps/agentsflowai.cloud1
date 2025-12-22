@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+set timeout 600
+set password "n/6Y#PRl(.ovLy@D,veW"
+spawn ssh root@72.61.16.111
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Try user's exact string
+send "ollama pull ministral-3:3b\r"
+expect {
+    "pulling manifest" {
+        exp_continue
+    }
+    "Error" {
+        puts "ministral-3:3b not found."
+    }
+    "# " {
+        puts "ministral-3:3b pull complete or failed."
+    }
+}
+
+# Ensure gemma2 is present
+send "ollama pull gemma2:9b\r"
+expect {
+    "pulling manifest" {
+        exp_continue
+    }
+    "Error" {
+         puts "gemma2:9b failed."
+    }
+    "# " {
+        puts "gemma2:9b pull complete."
+    }
+}
+
+# List all models
+send "ollama list\r"
+expect "# "
+
+send "exit\r"
+expect "# "
+send "exit\r"
+expect eof

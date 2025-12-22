@@ -87,5 +87,13 @@ expect {
 expect -re $prompt
 send "exit\r"
 expect -re $prompt
+
+# Update Nginx config as root
+send "cp /var/www/agentsflow-ai/deploy/nginx.conf /etc/nginx/sites-available/agentsflow-ai\r"
+expect -re $prompt
+send "nginx -t && systemctl reload nginx\r"
+expect -re $prompt
+puts "Nginx configuration updated and reloaded."
+
 send "exit\r"
-interact
+expect eof
