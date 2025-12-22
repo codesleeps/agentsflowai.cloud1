@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  tier        String   // 'basic' | 'growth' | 'enterprise'
+  price       Float
+  features    String[]
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Lead {
+  id           String    @id @default(uuid())
+  name         String
+  email        String
+  company      String?
+  phone        String?
+  status       String    @default("new") // 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost'
+  score        Int       @default(0)
+  source       String    @default("website") // 'website' | 'chat' | 'referral' | 'ads'
+  budget       String?   // 'low' | 'medium' | 'high' | 'enterprise'
+  timeline     String?   // 'immediate' | '1-3months' | '3-6months' | 'exploring'
+  interests    String[]
+  notes        String?
+  qualified_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  conversations Conversation[]
+  appointments  Appointment[]
+
+  @@map("leads")
+}
+
+model Conversation {
+  id         String    @id @default(uuid())
+  lead_id    String?
+  status     String    @default("active") // 'active' | 'closed' | 'transferred'
+  channel    String    @default("chat")   // 'chat' | 'email' | 'phone'
+  started_at DateTime  @default(now())
+  ended_at   DateTime?
+  summary    String?
+  sentiment  String?   // 'positive' | 'neutral' | 'negative'
+  created_at DateTime  @default(now())
+
+  lead     Lead?     @relation(fields: [lead_id], references: [id])
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  conversation_id String
+  role            String   // 'user' | 'assistant' | 'system'
+  content         String
+  metadata        Json?
+  created_at      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversation_id], references: [id])
+
+  @@map("messages")
+}
+
+model Appointment {
+  id               String   @id @default(uuid())
+  lead_id          String
+  title            String
+  description      String?
+  scheduled_at     DateTime
+  duration_minutes Int
+  status           String   @default("scheduled") // 'scheduled' | 'completed' | 'cancelled' | 'no-show'
+  meeting_link     String?
+  notes            String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+
+  @@map("appointments")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  event_type String
+  event_data Json
+  lead_id    String?
+  session_id String?
+  created_at DateTime @default(now())
+
+  @@map("analytics_events")
+}

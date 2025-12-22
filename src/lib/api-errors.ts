@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 
 export class ValidationError extends Error {
   constructor(message: string, public details?: any) {
@@ -50,7 +51,7 @@ export interface ErrorResponse {
 
 export function handleApiError(error: Error): NextResponse {
   const env = process.env.NODE_ENV;
-  
+
   let statusCode = 500;
   let errorCode = 'INTERNAL_ERROR';
   let message = 'An unexpected error occurred';
@@ -61,6 +62,11 @@ export function handleApiError(error: Error): NextResponse {
     errorCode = 'VALIDATION_ERROR';
     message = error.message;
     details = error.details;
+  } else if (error instanceof ZodError) {
+    statusCode = 400;
+    errorCode = 'VALIDATION_ERROR';
+    message = 'Validation failed';
+    details = error.errors;
   } else if (error instanceof AuthenticationError) {
     statusCode = 401;
     errorCode = 'AUTHENTICATION_ERROR';
@@ -80,7 +86,7 @@ export function handleApiError(error: Error): NextResponse {
   } else if (error instanceof ExternalServiceError) {
     statusCode = error.statusCode || 502;
     errorCode = 'EXTERNAL_SERVICE_ERROR';
-    message = env === 'production' 
+    message = env === 'production'
       ? `Service ${error.service} is temporarily unavailable`
       : error.message;
     details = { service: error.service };
