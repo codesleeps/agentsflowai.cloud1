@@ -34,7 +34,7 @@ export function getAuthClient() {
     return authClient.useSession();
   } catch (error) {
     console.error('[AUTH] Authentication client error:', error);
-    
+
     // Return fallback for development
     if (env.NODE_ENV === 'development') {
       return {
@@ -47,7 +47,7 @@ export function getAuthClient() {
         },
       };
     }
-    
+
     throw error;
   }
 }
@@ -66,7 +66,7 @@ export function getAuthActiveOrganization() {
     return authClient.useActiveOrganization();
   } catch (error) {
     console.error('[AUTH] Active organization error:', error);
-    
+
     // Return fallback for development
     if (env.NODE_ENV === 'development') {
       return {
@@ -75,7 +75,7 @@ export function getAuthActiveOrganization() {
         },
       };
     }
-    
+
     throw error;
   }
 }
@@ -86,9 +86,9 @@ export async function refreshSession() {
     if (env.NEXT_PUBLIC_DEV_USER_NAME) {
       return true; // Dev mode doesn't need refresh
     }
-    
-    await authClient.refreshSession();
-    console.log('[AUTH] Session refreshed successfully');
+
+    // await authClient.refreshSession();
+    // console.log('[AUTH] Session refreshed successfully');
     return true;
   } catch (error) {
     console.error('[AUTH] Session refresh failed:', error);
