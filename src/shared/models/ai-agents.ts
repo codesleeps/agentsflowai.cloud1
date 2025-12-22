@@ -9,16 +9,26 @@ export interface AIAgent {
   systemPrompt: string;
   capabilities: string[];
   model: string;
+  provider?: 'ollama' | 'google' | 'openai';
   isActive: boolean;
 }
 
-export type AIAgentCategory = 
+export type AIAgentCategory =
   | 'web-development'
   | 'analytics'
   | 'content-creation'
   | 'marketing'
   | 'social-media'
-  | 'seo';
+  | 'seo'
+  | 'fast-chat';
+
+// ... (keep intermediate interfaces as they are, but since I'm only replacing AIAgent definition and AI_AGENTS list, I need to include them in the chunk or use logic. Wait, replace_file_content requires a single contiguous block.
+// I will rewrite the AIAgent interface and then use a separate call or a very large block to update AI_AGENTS if they are far apart.
+// Actually, they are far apart (lines 3-13 vs 145-301). I should use MULTI_REPLACE.
+
+// WAIT, I only have replace_file_content or multi_replace.
+// I will use multi_replace.
+
 
 export interface AIAgentMessage {
   id: string;
@@ -297,5 +307,49 @@ Always consider platform-specific best practices. Focus on engagement and commun
 - Analyze competitor SEO strategies
 
 Always follow current SEO best practices. Focus on user intent and search quality. Provide specific, actionable recommendations with expected impact.`,
+  },
+  {
+    id: 'fast-chat-agent',
+    name: 'Fast Chat Agent',
+    description: 'High-speed responses using Ministral-3B for quick answers and chat',
+    icon: '⚡',
+    category: 'fast-chat',
+    model: 'ministral-3:3b',
+    provider: 'ollama',
+    isActive: true,
+    capabilities: [
+      'Rapid responses',
+      'General knowledge',
+      'Brainstorming',
+      'Quick summaries',
+      'Chat and conversation',
+    ],
+    systemPrompt: `You are a helpful, fast, and efficient AI assistant powered by Ministral.
+- Keep answers concise and to the point.
+- Prioritize speed and clarity.
+- Be friendly and conversational.
+- If you don't know something, admit it quickly.`,
+  },
+  {
+    id: 'gemini-agent',
+    name: 'Gemini Cloud Agent',
+    description: 'Powered by Google Gemini 2.0 Flash for advanced reasoning and massive context',
+    icon: '✨',
+    category: 'web-development', // Categorizing as general/web-dev for now or we can use 'fast-chat'
+    model: 'gemini-2.0-flash',
+    provider: 'google',
+    isActive: true,
+    capabilities: [
+      'Advanced reasoning',
+      'Code generation',
+      'Large context analysis',
+      'Creative writing',
+      'Multimodal understanding',
+    ],
+    systemPrompt: `You are an advanced AI assistant powered by Google's Gemini 2.0 Flash model.
+- Leverage your advanced reasoning capabilities for complex problems.
+- Provide detailed, high-quality responses.
+- You have a large context window, so feel free to reference previous parts of the conversation in detail.
+- Be helpful, harmless, and honest.`,
   },
 ];

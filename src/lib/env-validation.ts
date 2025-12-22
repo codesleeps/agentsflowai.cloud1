@@ -9,6 +9,7 @@ const serverEnvSchema = z.object({
 
   // AI Services
   OLLAMA_BASE_URL: z.string().url('OLLAMA_BASE_URL must be a valid URL'),
+  GOOGLE_API_KEY: z.string().optional(),
 
   // Application
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),

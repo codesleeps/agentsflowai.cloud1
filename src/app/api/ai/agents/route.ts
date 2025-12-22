@@ -45,49 +45,90 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: message },
     ];
 
-    // Determine Ollama URL
-    const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-
-    // Call Ollama chat API
+    // Determine provider and call appropriate API
     try {
-      const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: agent.model,
-          messages,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            top_p: 0.9,
-            num_predict: 2048,
+      if (agent.provider === 'google') {
+        const apiKey = process.env.GOOGLE_API_KEY;
+        if (!apiKey) {
+          throw new Error('GOOGLE_API_KEY is not defined');
+        }
+
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: agent.model });
+
+        // Construct history for Gemini
+        const history = (conversationHistory || []).map((msg: any) => ({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.content }],
+        }));
+
+        const chat = model.startChat({
+          history,
+          generationConfig: {
+            maxOutputTokens: 2048,
           },
-        }),
-      });
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: agent.systemPrompt }],
+          },
+        });
 
-      if (!ollamaResponse.ok) {
-        throw new Error(`Ollama API returned ${ollamaResponse.status}`);
+        const result = await chat.sendMessage(message);
+        const responseText = result.response.text();
+
+        return NextResponse.json({
+          response: responseText,
+          model: agent.model,
+          agentId: agent.id,
+          agentName: agent.name,
+          tokensUsed: 0, // Gemini doesn't always return token count in basic response
+          generationTime: 0,
+        });
+
+      } else {
+        // Default to Ollama
+        const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+
+        const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: agent.model,
+            messages,
+            stream: false,
+            options: {
+              temperature: 0.7,
+              top_p: 0.9,
+              num_predict: 2048,
+            },
+          }),
+        });
+
+        if (!ollamaResponse.ok) {
+          throw new Error(`Ollama API returned ${ollamaResponse.status}`);
+        }
+
+        const data = await ollamaResponse.json();
+
+        return NextResponse.json({
+          response: data.message?.content || data.response,
+          model: agent.model,
+          agentId: agent.id,
+          agentName: agent.name,
+          tokensUsed: data.eval_count,
+          generationTime: data.total_duration,
+        });
       }
-
-      const data = await ollamaResponse.json();
-
-      return NextResponse.json({
-        response: data.message?.content || data.response,
-        model: agent.model,
-        agentId: agent.id,
-        agentName: agent.name,
-        tokensUsed: data.eval_count,
-        generationTime: data.total_duration,
-      });
     } catch (error) {
-      // Fallback to built-in AI if Ollama is not available (connection error or non-200 response)
-      console.log('Ollama not available, using fallback response:', error);
+      // Fallback logic
+      console.log('AI Provider not available, using fallback response:', error);
       return NextResponse.json({
         response: generateFallbackResponse(agent.id, message),
         model: 'fallback',
         agentId: agent.id,
         agentName: agent.name,
-        note: "Ollama is currently offline. Using offline fallback mode."
+        note: `AI Provider (${agent.provider || 'ollama'}) is currently offline. Using offline fallback mode.`
       });
     }
   } catch (error) {
