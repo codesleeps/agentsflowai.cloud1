@@ -7,9 +7,6 @@ const envSchema = z.object({
     { message: 'DATABASE_URL must be a PostgreSQL connection string' }
   ),
 
-  // Vybe Integration
-  VYBE_SERVER_SECRET: z.string().min(32, 'VYBE_SERVER_SECRET must be at least 32 characters').optional(),
-  NEXT_PUBLIC_VYBE_INTEGRATIONS_DOMAIN: z.string().url().optional(),
 
   // AI Services
   OLLAMA_BASE_URL: z.string().url('OLLAMA_BASE_URL must be a valid URL'),

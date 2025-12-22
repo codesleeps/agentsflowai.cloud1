@@ -5,7 +5,7 @@ import { getEnv } from "@/lib/env-validation";
 const env = getEnv();
 
 // Validate baseURL for production
-const baseURL = env.NEXT_PUBLIC_VYBE_INTEGRATIONS_DOMAIN || "https://vybe.build";
+const baseURL = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 if (env.NODE_ENV === 'production' && !baseURL.startsWith('https://')) {
   console.warn('[AUTH] Warning: Using non-HTTPS baseURL in production. This is not recommended for security reasons.');
@@ -13,7 +13,7 @@ if (env.NODE_ENV === 'production' && !baseURL.startsWith('https://')) {
 
 export const authClient = createAuthClient({
   baseURL,
-  plugins: [organizationClient()],
+  // plugins: [organizationClient()],
 });
 
 // Enhanced error boundary for authentication failures
@@ -63,7 +63,12 @@ export function getAuthActiveOrganization() {
       };
     }
 
-    return authClient.useActiveOrganization();
+    return {
+      data: {
+        name: "AgentsFlowAI Org",
+      },
+    };
+    // return authClient.useActiveOrganization();
   } catch (error) {
     console.error('[AUTH] Active organization error:', error);
 

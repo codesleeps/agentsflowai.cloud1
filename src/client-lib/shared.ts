@@ -5,7 +5,7 @@ const showLiveData = process.env.NEXT_PUBLIC_SHOW_LIVE_DATA === "true";
 export const showFakeData = process.env.NODE_ENV === "development" && !showLiveData;
 
 export const integrationsClient = axios.create({
-  baseURL: vybeDomain + "/api",
+  baseURL: "/api",
   withCredentials: true,
 });
 

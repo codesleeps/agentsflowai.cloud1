@@ -47,7 +47,7 @@ export function Sidebar() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.location.href = "https://vybe.build/login";
+          window.location.href = "/welcome";
         },
       },
     });
@@ -114,15 +114,15 @@ export function Sidebar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => window.open("https://vybe.build/organizations", "_blank")}
+                    onClick={() => window.location.href = "/"}
                   >
-                    Manage organizations <ExternalLink className="ml-auto w-4 h-4" />
+                    Account Settings <ExternalLink className="ml-auto w-4 h-4" />
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => window.open("https://vybe.build/apps", "_blank")}
+                    onClick={() => window.location.href = "/chat"}
                   >
-                    Manage apps <ExternalLink className="ml-auto w-4 h-4" />
+                    AI Dashboard <ExternalLink className="ml-auto w-4 h-4" />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem disabled={true} className="cursor-pointer" onClick={handleSignOut}>
