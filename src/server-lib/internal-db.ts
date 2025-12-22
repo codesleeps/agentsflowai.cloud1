@@ -24,18 +24,18 @@ internalDbClient.interceptors.request.use(
     // Add server secret for authentication
     const headers = AxiosHeaders.from(config.headers);
     headers.set("VYBE_SERVER_SECRET", env.VYBE_SERVER_SECRET);
-    
+
     // Add request timestamp for debugging
     headers.set("X-Request-Timestamp", new Date().toISOString());
-    
+
     // Add request ID for tracing
     headers.set("X-Request-ID", generateRequestId());
-    
+
     config.headers = headers;
-    
+
     // Log request for audit trail
     console.log(`[VYBE API] ${config.method?.toUpperCase()} ${config.url}`);
-    
+
     return config;
   },
   (error) => {
@@ -52,28 +52,28 @@ internalDbClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config;
-    
+    const originalRequest = error.config as any;
+
     // Log error for audit trail
     console.error(`[VYBE API] Error ${error.response?.status} for ${originalRequest?.url}:`, error.message);
-    
+
     // Implement retry logic for network errors and 5xx responses
     if (!originalRequest || shouldRetry(error)) {
       const maxRetries = 3;
       const retryCount = originalRequest._retryCount || 0;
-      
+
       if (retryCount < maxRetries) {
         originalRequest._retryCount = retryCount + 1;
-        
+
         // Exponential backoff delay
         const delay = Math.pow(2, retryCount) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
-        
+
         console.log(`[VYBE API] Retrying request (${retryCount + 1}/${maxRetries}) for ${originalRequest.url}`);
         return internalDbClient(originalRequest);
       }
     }
-    
+
     // Handle specific error types
     if (error.response?.status === 401) {
       throw new Error('Authentication failed: Invalid VYBE_SERVER_SECRET');
@@ -86,7 +86,7 @@ internalDbClient.interceptors.response.use(
     } else if (error.response?.status && error.response.status >= 500) {
       throw new Error(`Server error: vybe.build API returned ${error.response.status}`);
     }
-    
+
     throw new Error(`API request failed: ${error.message}`);
   }
 );
@@ -95,9 +95,9 @@ internalDbClient.interceptors.response.use(
 function shouldRetry(error: AxiosError): boolean {
   // Retry on network errors, timeouts, and 5xx server errors
   return !error.response ||
-         error.code === 'ENOTFOUND' ||
-         error.code === 'ECONNABORTED' ||
-         (error.response.status >= 500 && error.response.status < 600);
+    error.code === 'ENOTFOUND' ||
+    error.code === 'ECONNABORTED' ||
+    (error.response.status >= 500 && error.response.status < 600);
 }
 
 // Helper function to generate unique request ID
