@@ -176,6 +176,7 @@ export const PaginationSchema = z.object({
     .optional(),
   search: z.string().optional(),
   status: LeadStatusEnum.optional(),
+  source: LeadSourceEnum.optional(),
 });
 
 // Utility function to sanitize strings
