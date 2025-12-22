@@ -147,7 +147,7 @@ npm ci
 npm run build
 
 # Restart application
-pm2 reload ecosystem.config.js --env production
+pm2 reload ecosystem.config.cjs --env production
 ```
 
 ### Automated Deployment (GitHub Actions)
@@ -201,7 +201,7 @@ cd /var/www/backups
 ls -la  # List available backups
 cp -r backup_YYYYMMDD_HHMMSS /var/www/agentsflow-ai
 cd /var/www/agentsflow-ai
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 ```
 
 ---
@@ -234,7 +234,7 @@ tail -f /var/log/nginx/agentsflow-ai-error.log
 ```bash
 pm2 logs --lines 100  # Check for errors
 pm2 delete all
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 ```
 
 ### Database Connection Issues

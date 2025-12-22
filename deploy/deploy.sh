@@ -66,7 +66,7 @@ npm run build
 # 5. Restart PM2
 # ===========================================
 log_info "Restarting application..."
-pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+pm2 reload ecosystem.config.cjs --env production || pm2 start ecosystem.config.cjs --env production
 
 # ===========================================
 # 6. Save PM2 Process List
@@ -85,7 +85,7 @@ if [ "$HTTP_CODE" == "200" ]; then
 else
     log_error "Health check failed! (HTTP $HTTP_CODE)"
     log_warn "Rolling back..."
-    pm2 reload ecosystem.config.js --env production
+    pm2 startOrReload ecosystem.config.cjs --env production
     exit 1
 fi
 
