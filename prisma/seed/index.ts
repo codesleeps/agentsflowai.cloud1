@@ -33,10 +33,7 @@ async function main() {
 
     for (const service of defaultServices) {
         await prisma.service.create({
-            data: {
-                ...service,
-                features: JSON.stringify(service.features)
-            }
+            data: service
         })
     }
 }
