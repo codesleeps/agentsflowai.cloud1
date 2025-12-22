@@ -11,6 +11,7 @@ import {
   Sparkles,
   Target,
   Zap,
+  Code,
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -343,6 +344,12 @@ export default function HomePage() {
               <Link href="/analytics">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 View Analytics
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link href="/ai-agents">
+                <Code className="h-4 w-4 mr-2" />
+                Web Developer Agent
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="outline" asChild>
