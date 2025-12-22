@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "n/6Y#PRl(.ovLy@D,veW"
+set nginx_content [read [open "deploy/nginx.conf" r]]
+
+spawn ssh root@72.61.16.111
+expect "password:"
+send "$password\r"
+expect "# "
+
+# Overwrite the sites-available file
+send "cat > /etc/nginx/sites-available/agentsflowai.cloud << 'EOF'\r"
+send "$nginx_content\r"
+send "EOF\r"
+
+expect "# "
+# Ensure it's enabled (it already is, but just in case of name mismatch)
+send "ln -sf /etc/nginx/sites-available/agentsflowai.cloud /etc/nginx/sites-enabled/agentsflowai.cloud\r"
+
+expect "# "
+# Remove any other conflicting names if they exist
+send "rm -f /etc/nginx/sites-enabled/agentsflow-ai\r"
+
+expect "# "
+send "nginx -t\r"
+expect {
+    "test is successful" {
+        send "systemctl reload nginx\r"
+        expect "# "
+        puts "Nginx reloaded successfully"
+    }
+    "fail" {
+        puts "Nginx config test failed"
+    }
+}
+
+expect "# "
+send "exit\r"
+interact

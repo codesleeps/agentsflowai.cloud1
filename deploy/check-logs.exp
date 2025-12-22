@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+set timeout 60
+set password "n/6Y#PRl(.ovLy@D,veW"
+spawn ssh root@72.61.16.111
+expect "password:"
+send "$password\r"
+expect "# "
+send "su - deploy\r"
+expect "$ "
+send "pm2 logs agentsflow-ai --lines 100 --no-daemon &\r"
+sleep 15
+send "\x03"
+expect "$ "
+send "exit\r"
+expect "# "
+send "exit\r"
+interact

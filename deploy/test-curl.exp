@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set timeout 30
+set password "n/6Y#PRl(.ovLy@D,veW"
+spawn ssh root@72.61.16.111
+expect "password:"
+send "$password\r"
+expect "# "
+send "curl -v http://localhost:3000/api/health\r"
+expect "# "
+send "exit\r"
+interact
