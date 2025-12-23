@@ -26,6 +26,8 @@ import {
   Menu,
   X,
   Loader2,
+  ChevronRight,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
