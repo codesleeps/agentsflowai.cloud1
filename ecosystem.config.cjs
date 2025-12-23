@@ -65,20 +65,23 @@ module.exports = {
    */
   deploy: {
     production: {
-      user: "deploy",
-      host: "agentsflowai.cloud",
+      user: "root",
+      host: "srv1187860.hstgr.cloud",
       ref: "origin/main",
       repo: "https://github.com/your-org/agentsflow-ai.cloud.git",
       path: "/var/www/agentsflow-ai",
-      ssh_options: ["IdentityFile=~/.ssh/deploy_key"],
+      ssh_options: [
+        "IdentityFile=~/.ssh/deploy_key",
+        "StrictHostKeyChecking=no",
+      ],
 
       // Pre-deployment commands
-      "pre-setup": "apt-get update && apt-get install -y git nodejs npm",
-      "pre-deploy": 'echo "Starting deployment..."',
+      "pre-setup": "apt-get update && apt-get install -y git",
+      "pre-deploy": "echo 'Starting deployment...'",
 
       // Post-deployment commands
       "post-deploy":
-        "npm ci --production=false && npm run build && pm2 reload ecosystem.config.cjs --env production",
+        "npm ci && npm run build && pm2 reload ecosystem.config.cjs --env production",
 
       // Environment variables to set on server
       env: {
