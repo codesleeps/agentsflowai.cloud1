@@ -19,8 +19,8 @@ export interface AIAgent {
   systemPrompt: string;
   capabilities: string[];
   model: string;
-  provider?: 'ollama' | 'google' | 'openai';
-  supportedProviders: Array<{provider: string, model: string, priority: number}>;
+  provider?: AIProvider;
+  supportedProviders: Array<{ provider: string, model: string, priority: number }>;
   defaultProvider: string;
   costTier: 'free' | 'low' | 'medium' | 'high';
   isActive: boolean;
@@ -187,9 +187,9 @@ export const AI_AGENTS: AIAgent[] = [
       'Explain code concepts',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, TypeScript, Node.js, and Tailwind CSS. You help users:
 - Generate clean, maintainable code
@@ -220,9 +220,9 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
       'Explain complex data',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are a data analytics expert specializing in business intelligence and data-driven decision making. You help users:
 - Analyze business metrics and KPIs
@@ -254,9 +254,9 @@ Always provide specific, actionable recommendations. Use data to support your in
       'Adapt tone and style',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are an expert content creator and copywriter with years of experience in digital marketing. You help users:
 - Write engaging blog posts and articles
@@ -288,9 +288,9 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
       'Suggest optimizations',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are a marketing strategist with expertise in digital marketing, growth hacking, and conversion optimization. You help users:
 - Create comprehensive marketing strategies
@@ -322,9 +322,9 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
       'Analyze trends',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are a social media expert with deep knowledge of all major platforms including Twitter/X, LinkedIn, Instagram, Facebook, and TikTok. You help users:
 - Create engaging social media posts
@@ -356,9 +356,9 @@ Always consider platform-specific best practices. Focus on engagement and commun
       'Competitor analysis',
     ],
     supportedProviders: [
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are an SEO expert with comprehensive knowledge of search engine algorithms, keyword research, and content optimization. You help users:
 - Conduct keyword research
@@ -389,8 +389,8 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       'Chat and conversation',
     ],
     supportedProviders: [
-        {provider: 'ollama', model: 'mistral', priority: 1},
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 2}
+      { provider: 'ollama', model: 'mistral', priority: 1 },
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 }
     ],
     systemPrompt: `You are a helpful, fast, and efficient AI assistant powered by Ollama's Mistral model.
 - Keep answers concise and to the point.
@@ -403,7 +403,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
     name: 'Gemini Cloud Agent',
     description: 'Powered by Google Gemini Flash for advanced reasoning and speed',
     icon: '✨',
-    category: 'fast-chat', 
+    category: 'fast-chat',
     model: 'gemini-2.0-flash',
     provider: 'google',
     defaultProvider: 'google',
@@ -417,9 +417,9 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       'Multimodal understanding',
     ],
     supportedProviders: [
-        {provider: 'google', model: 'gemini-2.0-flash', priority: 1},
-        {provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 2},
-        {provider: 'ollama', model: 'mistral', priority: 3}
+      { provider: 'google', model: 'gemini-2.0-flash', priority: 1 },
+      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 2 },
+      { provider: 'ollama', model: 'mistral', priority: 3 }
     ],
     systemPrompt: `You are an advanced AI assistant powered by Google's Gemini Flash model.
 - Leverage your advanced reasoning capabilities for complex problems.

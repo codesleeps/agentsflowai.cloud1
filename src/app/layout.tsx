@@ -2,7 +2,7 @@ import "globals.css";
 
 import { type Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
 import { validateEnv } from "@/lib/env-validation";
 
@@ -27,10 +27,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.className}`}>
       <body className="min-h-screen">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <Providers attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <Toaster richColors />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

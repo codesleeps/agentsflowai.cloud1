@@ -35,9 +35,14 @@ export async function logModelUsage(params: LogUsageParams) {
       params.completion_tokens
     );
 
+    const { user_id, ...rest } = params;
+    const total_tokens = params.prompt_tokens + params.completion_tokens;
+
     await db.aIModelUsage.create({
       data: {
-        ...params,
+        ...rest,
+        user: { connect: { id: user_id } },
+        total_tokens,
         cost_usd: cost,
       }
     });
