@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-helpers';
-import { db } from '@/server-lib/db';
+import { prisma as db } from '@/server-lib/prisma';
 import { handleApiError } from '@/lib/api-errors';
 import { z } from 'zod';
 
@@ -18,7 +18,7 @@ const ModelConfigSchema = z.object({
 
 export async function GET(request: NextRequest) {
     try {
-        const { user } = await requireAuth(request);
+        const user = await requireAuth(request);
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const agentId = searchParams.get('agentId');
 
-        const whereClause = agentId 
-            ? { userId: user.id, agentId }
-            : { userId: user.id };
+        const whereClause = agentId
+            ? { user_id: user.id, agent_id: agentId }
+            : { user_id: user.id };
 
         const config = await db.aIModelConfig.findMany({ where: whereClause });
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const { user } = await requireAuth(request);
+        const user = await requireAuth(request);
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -52,22 +52,22 @@ export async function POST(request: NextRequest) {
 
         const updatedConfig = await db.aIModelConfig.upsert({
             where: {
-                userId_agentId: {
-                    userId: user.id,
-                    agentId: agentId,
+                user_id_agent_id: {
+                    user_id: user.id,
+                    agent_id: agentId,
                 }
             },
             update: {
-                primaryProvider,
-                primaryModel,
-                fallbackChain,
+                primary_provider: primaryProvider,
+                primary_model: primaryModel,
+                fallback_chain: fallbackChain,
             },
             create: {
-                userId: user.id,
-                agentId,
-                primaryProvider,
-                primaryModel,
-                fallbackChain,
+                user_id: user.id,
+                agent_id: agentId,
+                primary_provider: primaryProvider,
+                primary_model: primaryModel,
+                fallback_chain: fallbackChain,
             },
         });
 
