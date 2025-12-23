@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     let { conversationHistory = [] } = validatedData;
 
     // Map conversation history to strictly typed AIMessage[]
-    conversationHistory = conversationHistory.map((msg: any, index: number) => ({
+    const enrichedHistory: AIMessage[] = conversationHistory.map((msg: any, index: number) => ({
       role: msg.role,
       content: msg.content,
       id: msg.id || `hist-${Date.now()}-${index}`,
