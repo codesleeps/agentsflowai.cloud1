@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/client-lib/auth-client";
 import {
   Bot,
   MessageSquare,
@@ -9,12 +11,8 @@ import {
   TrendingUp,
   Zap,
   Shield,
-  Clock,
   CheckCircle2,
   ArrowRight,
-  Star,
-  Play,
-  ChevronRight,
   Sparkles,
   BarChart3,
   Calendar,
@@ -26,6 +24,7 @@ import {
   Github,
   Menu,
   X,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -185,13 +184,43 @@ const useCases = [
 ];
 
 export default function WelcomePage() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginForm, setLoginForm] = useState({
+    email: "",
+    password: "",
+  });
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
     company: "",
     message: "",
   });
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+
+    try {
+      const { error } = await authClient.signIn.signIn({
+        email: loginForm.email,
+        password: loginForm.password,
+      });
+
+      if (error) {
+        toast.error(error.message || "Login failed");
+      } else {
+        toast.success("Welcome back!");
+        router.replace("/dashboard");
+      }
+    } catch (err) {
+      toast.error("An error occurred during login");
+      console.error(err);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,14 +276,25 @@ export default function WelcomePage() {
             </div>
 
             <div className="hidden items-center gap-4 md:flex">
-              <Button variant="ghost" asChild>
-                <Link href="/dashboard">Login</Link>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  document
+                    .getElementById("login")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Login
               </Button>
-              <Button asChild>
-                <Link href="/dashboard">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button
+                onClick={() =>
+                  document
+                    .getElementById("signup")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
 
@@ -312,11 +352,26 @@ export default function WelcomePage() {
                 Contact
               </a>
               <div className="flex flex-col gap-2 pt-4">
-                <Button variant="outline" asChild className="w-full">
-                  <Link href="/dashboard">Login</Link>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    document
+                      .getElementById("login")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  Login
                 </Button>
-                <Button asChild className="w-full">
-                  <Link href="/dashboard">Get Started</Link>
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    document
+                      .getElementById("signup")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  Get Started
                 </Button>
               </div>
             </div>
@@ -324,36 +379,122 @@ export default function WelcomePage() {
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+      {/* Hero Section with Login */}
+      <section className="px-4 pb-20 pt-32 sm:px-6 lg:px-8" id="login">
         <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-4xl text-center">
-            <Badge variant="secondary" className="mb-6">
-              <Sparkles className="mr-1 h-3 w-3" />
-              AI-Powered Business Automation
-            </Badge>
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Transform Your Business with{" "}
-              <span className="text-primary">Intelligent Automation</span>
-            </h1>
-            <p className="mx-auto mb-8 max-w-2xl text-xl text-muted-foreground">
-              AgentsFlowAI combines multiple AI agents to handle customer
-              interactions, qualify leads, recommend services, and provide
-              real-time analytics — all automatically.
-            </p>
-            <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Button size="lg" asChild>
-                <Link href="/chat">
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Try AI Chat Free
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <a href="#how-it-works">
-                  <Play className="mr-2 h-5 w-5" />
-                  See How It Works
-                </a>
-              </Button>
+          <div className="grid gap-12 lg:grid-cols-2">
+            {/* Hero Content */}
+            <div>
+              <Badge variant="secondary" className="mb-6">
+                <Sparkles className="mr-1 h-3 w-3" />
+                AI-Powered Business Automation
+              </Badge>
+              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                Transform Your Business with{" "}
+                <span className="text-primary">Intelligent Automation</span>
+              </h1>
+              <p className="mb-8 text-xl text-muted-foreground">
+                AgentsFlowAI combines multiple AI agents to handle customer
+                interactions, qualify leads, recommend services, and provide
+                real-time analytics — all automatically.
+              </p>
+              <div className="flex flex-col justify-center gap-4 sm:flex-row">
+                <Button size="lg" asChild>
+                  <Link href="/chat">
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Try AI Chat Free
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <a href="#how-it-works">
+                    <Play className="mr-2 h-5 w-5" />
+                    See How It Works
+                  </a>
+                </Button>
+              </div>
+            </div>
+
+            {/* Login Card */}
+            <div className="flex items-center justify-center">
+              <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <Bot className="h-6 w-6 text-primary" />
+                    Welcome Back
+                  </CardTitle>
+                  <CardDescription>
+                    Sign in to access your dashboard
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="email"
+                        className="mb-2 block text-sm font-medium"
+                      >
+                        Email
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={loginForm.email}
+                        onChange={(e) =>
+                          setLoginForm({ ...loginForm, email: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="password"
+                        className="mb-2 block text-sm font-medium"
+                      >
+                        Password
+                      </label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={loginForm.password}
+                        onChange={(e) =>
+                          setLoginForm({
+                            ...loginForm,
+                            password: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoggingIn}
+                    >
+                      {isLoggingIn ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        "Sign In"
+                      )}
+                    </Button>
+                  </form>
+                  <div className="mt-4 text-center text-sm">
+                    <span className="text-muted-foreground">
+                      Don't have an account?{" "}
+                    </span>
+                    <a
+                      href="#signup"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      Sign up
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
@@ -373,8 +514,71 @@ export default function WelcomePage() {
         </div>
       </section>
 
+      {/* Sign Up Section */}
+      <section id="signup" className="bg-muted/30 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <Badge variant="outline" className="mb-4">
+              Get Started
+            </Badge>
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
+              Ready to Transform Your Business?
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Join hundreds of businesses already using AgentsFlowAI to automate
+              their customer interactions and scale faster.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {pricingPlans.map((plan) => (
+              <Card
+                key={plan.name}
+                className={`relative ${plan.popular ? "scale-105 border-primary shadow-xl" : ""}`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary">Most Popular</Badge>
+                  </div>
+                )}
+                <CardHeader className="pb-4 text-center">
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">${plan.price}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="mb-6 space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-500" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    className="w-full"
+                    variant={plan.popular ? "default" : "outline"}
+                    asChild
+                  >
+                    <Link href="/chat">Start Free Trial</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center text-sm text-muted-foreground">
+            All plans include 14-day free trial. No credit card required to
+            start.
+          </p>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="bg-muted/30 px-4 py-20 sm:px-6 lg:px-8">
+      <section id="features" className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <Badge variant="outline" className="mb-4">
@@ -484,106 +688,6 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Use Cases Section */}
-      <section className="bg-muted/30 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <Badge variant="outline" className="mb-4">
-              Use Cases
-            </Badge>
-            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
-              Built for Growing Businesses
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              Whether you're a solo founder or an established agency,
-              AgentsFlowAI scales with you.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2">
-            {useCases.map((useCase) => (
-              <div
-                key={useCase.title}
-                className="flex gap-4 rounded-xl border bg-background p-6 transition-colors hover:border-primary/50"
-              >
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <useCase.icon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold">
-                    {useCase.title}
-                  </h3>
-                  <p className="text-muted-foreground">{useCase.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <Badge variant="outline" className="mb-4">
-              Pricing
-            </Badge>
-            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              Choose the plan that fits your business. All plans include a
-              14-day free trial.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {pricingPlans.map((plan) => (
-              <Card
-                key={plan.name}
-                className={`relative ${plan.popular ? "scale-105 border-primary shadow-xl" : ""}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary">Most Popular</Badge>
-                  </div>
-                )}
-                <CardHeader className="pb-4 text-center">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">${plan.price}</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="mb-6 space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-500" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className="w-full"
-                    variant={plan.popular ? "default" : "outline"}
-                    asChild
-                  >
-                    <Link href="/chat">Start Free Trial</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            All plans include 14-day free trial. No credit card required to
-            start.
-          </p>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
       <section
         id="testimonials"
@@ -634,6 +738,24 @@ export default function WelcomePage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <Badge variant="outline" className="mb-4">
+              Pricing
+            </Badge>
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Choose the plan that fits your business. All plans include a
+              14-day free trial.
+            </p>
           </div>
         </div>
       </section>
@@ -830,9 +952,9 @@ export default function WelcomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/dashboard" className="hover:text-primary">
+                  <a href="#login" className="hover:text-primary">
                     Login
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>

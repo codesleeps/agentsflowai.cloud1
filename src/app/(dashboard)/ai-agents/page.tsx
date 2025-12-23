@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -21,14 +20,24 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { useOllamaStatus, useAIAgents, generateAgentResponse } from "@/client-lib/ai-agents-client";
+import {
+  useOllamaStatus,
+  useAIAgents,
+  generateAgentResponse,
+} from "@/client-lib/ai-agents-client";
 import { toast } from "sonner";
 import type { AIAgent, AIProvider } from "@/shared/models/ai-agents";
 import { ModelSelector } from "@/components/ModelSelector";
@@ -51,12 +60,18 @@ const agentIcons: Record<string, React.ReactNode> = {
 };
 
 const agentColors: Record<string, string> = {
-  "web-dev-agent": "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  "analytics-agent": "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30",
-  "content-agent": "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30",
-  "marketing-agent": "bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30",
-  "social-media-agent": "bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-500/30",
-  "seo-agent": "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
+  "web-dev-agent":
+    "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
+  "analytics-agent":
+    "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30",
+  "content-agent":
+    "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30",
+  "marketing-agent":
+    "bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30",
+  "social-media-agent":
+    "bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-500/30",
+  "seo-agent":
+    "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
 };
 
 export default function AIAgentsPage() {
@@ -67,7 +82,10 @@ export default function AIAgentsPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [currentModel, setCurrentModel] = useState<{ provider: AIProvider, model: string } | null>(null);
+  const [currentModel, setCurrentModel] = useState<{
+    provider: AIProvider;
+    model: string;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -80,7 +98,10 @@ export default function AIAgentsPage() {
 
   const handleSelectAgent = (agent: AIAgent) => {
     setSelectedAgent(agent);
-    setCurrentModel({ provider: agent.defaultProvider as AIProvider, model: agent.model });
+    setCurrentModel({
+      provider: agent.defaultProvider as AIProvider,
+      model: agent.model,
+    });
     setMessages([
       {
         role: "assistant",
@@ -119,7 +140,6 @@ export default function AIAgentsPage() {
         selectedAgent.id,
         userMessage.content,
         conversationHistory,
-        currentModel?.provider
       );
 
       const assistantMessage: ChatMessage = {
@@ -138,10 +158,11 @@ export default function AIAgentsPage() {
     } catch (error) {
       console.error("Error generating response:", error);
       toast.error("Failed to generate response. Please try again.");
-      
+
       const errorMessage: ChatMessage = {
         role: "assistant",
-        content: "I apologize, but I encountered an error. Please try again or check if the selected AI provider is available.",
+        content:
+          "I apologize, but I encountered an error. Please try again or check if the selected AI provider is available.",
         timestamp: new Date(),
         agentId: selectedAgent.id,
       };
@@ -168,18 +189,22 @@ export default function AIAgentsPage() {
   const renderMessageContent = (content: string) => {
     // Simple markdown-like rendering for code blocks
     const parts = content.split(/(```[\s\S]*?```)/g);
-    
+
     return parts.map((part, index) => {
       if (part.startsWith("```") && part.endsWith("```")) {
         const codeContent = part.slice(3, -3);
         const firstLineEnd = codeContent.indexOf("\n");
-        const language = firstLineEnd > 0 ? codeContent.slice(0, firstLineEnd).trim() : "";
-        const code = firstLineEnd > 0 ? codeContent.slice(firstLineEnd + 1) : codeContent;
-        
+        const language =
+          firstLineEnd > 0 ? codeContent.slice(0, firstLineEnd).trim() : "";
+        const code =
+          firstLineEnd > 0 ? codeContent.slice(firstLineEnd + 1) : codeContent;
+
         return (
           <div key={index} className="relative my-3">
-            <div className="flex items-center justify-between bg-muted/80 px-3 py-1 rounded-t-lg border-b">
-              <span className="text-xs font-mono text-muted-foreground">{language || "code"}</span>
+            <div className="flex items-center justify-between rounded-t-lg border-b bg-muted/80 px-3 py-1">
+              <span className="font-mono text-xs text-muted-foreground">
+                {language || "code"}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -193,13 +218,13 @@ export default function AIAgentsPage() {
                 )}
               </Button>
             </div>
-            <pre className="bg-muted/50 p-3 rounded-b-lg overflow-x-auto">
-              <code className="text-sm font-mono">{code}</code>
+            <pre className="overflow-x-auto rounded-b-lg bg-muted/50 p-3">
+              <code className="font-mono text-sm">{code}</code>
             </pre>
           </div>
         );
       }
-      
+
       // Render bold text
       const boldParts = part.split(/(\*\*[^*]+\*\*)/g);
       return (
@@ -216,15 +241,15 @@ export default function AIAgentsPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6 gap-6">
+    <div className="flex flex-1 flex-col gap-6 p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-3xl font-bold">
             <Sparkles className="h-8 w-8 text-primary" />
             AI Agents Hub
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="mt-1 text-muted-foreground">
             Specialized AI agents with multi-provider support
           </p>
         </div>
@@ -232,7 +257,7 @@ export default function AIAgentsPage() {
           {/* Ollama Status */}
           <div className="flex items-center gap-2">
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ${
                 ollamaStatus?.status === "connected"
                   ? "bg-green-500/20 text-green-700 dark:text-green-400"
                   : "bg-red-500/20 text-red-700 dark:text-red-400"
@@ -257,47 +282,51 @@ export default function AIAgentsPage() {
 
       {/* Quick Links to Specialized Agents */}
       <Card>
-        <CardContent className="py-3 flex flex-wrap gap-2">
-          <span className="text-xs font-medium text-muted-foreground mr-2">
+        <CardContent className="flex flex-wrap gap-2 py-3">
+          <span className="mr-2 text-xs font-medium text-muted-foreground">
             Jump to specialized agents:
           </span>
           <Button variant="outline" size="sm" asChild>
             <Link href="/ai-agents/seo">
-              <Search className="h-3 w-3 mr-1" /> SEO Agent
+              <Search className="mr-1 h-3 w-3" /> SEO Agent
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
             <Link href="/ai-agents/content">
-              <PenTool className="h-3 w-3 mr-1" /> Content Agent
+              <PenTool className="mr-1 h-3 w-3" /> Content Agent
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
             <Link href="/ai-agents/social">
-              <Share2 className="h-3 w-3 mr-1" /> Social Media Agent
+              <Share2 className="mr-1 h-3 w-3" /> Social Media Agent
             </Link>
           </Button>
         </CardContent>
       </Card>
 
       {/* Available Models */}
-      {ollamaStatus?.status === "connected" && ollamaStatus.models && ollamaStatus.models.length > 0 && (
-        <Card>
-          <CardContent className="py-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Cpu className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Available Models:</span>
-              {ollamaStatus.models.map((model) => (
-                <Badge key={model.name} variant="secondary">
-                  {model.name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {ollamaStatus?.status === "connected" &&
+        ollamaStatus.models &&
+        ollamaStatus.models.length > 0 && (
+          <Card>
+            <CardContent className="py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Cpu className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Available Models:
+                </span>
+                {ollamaStatus.models.map((model) => (
+                  <Badge key={model.name} variant="secondary">
+                    {model.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-3 flex-1">
+      <div className="grid flex-1 gap-6 lg:grid-cols-3">
         {/* Agent Selection */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -313,22 +342,22 @@ export default function AIAgentsPage() {
                 <button
                   key={agent.id}
                   onClick={() => handleSelectAgent(agent)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all ${
+                  className={`w-full rounded-lg border p-4 text-left transition-all ${
                     selectedAgent?.id === agent.id
                       ? `${agentColors[agent.id]} border-2`
                       : "hover:bg-muted/50"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${agentColors[agent.id]}`}>
+                    <div className={`rounded-lg p-2 ${agentColors[agent.id]}`}>
                       {agentIcons[agent.id]}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="flex items-center gap-2 font-medium">
                         {agent.name}
                         <span>{agent.icon}</span>
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                         {agent.description}
                       </p>
                     </div>
@@ -340,29 +369,38 @@ export default function AIAgentsPage() {
         </Card>
 
         {/* Chat Interface */}
-        <Card className="lg:col-span-2 flex flex-col">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader className="border-b">
             {selectedAgent ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${agentColors[selectedAgent.id]}`}>
+                  <div
+                    className={`rounded-lg p-2 ${agentColors[selectedAgent.id]}`}
+                  >
                     {agentIcons[selectedAgent.id]}
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                     <CardTitle>{selectedAgent.name}</CardTitle>
-                    <CardDescription>{selectedAgent.description}</CardDescription>
-                    </div>
+                    <CardDescription>
+                      {selectedAgent.description}
+                    </CardDescription>
+                  </div>
                 </div>
-                <ModelSelector agent={selectedAgent} onModelChange={handleModelChange} />
+                <ModelSelector
+                  agent={selectedAgent}
+                  onModelChange={handleModelChange}
+                />
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
+                <div className="rounded-lg bg-muted p-2">
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
                   <CardTitle>Select an Agent</CardTitle>
-                  <CardDescription>Choose a specialized AI agent to start</CardDescription>
+                  <CardDescription>
+                    Choose a specialized AI agent to start
+                  </CardDescription>
                 </div>
               </div>
             )}
@@ -370,17 +408,21 @@ export default function AIAgentsPage() {
 
           {selectedAgent ? (
             <>
-              <ScrollArea className="flex-1 p-4 max-h-[500px]">
+              <ScrollArea className="max-h-[500px] flex-1 p-4">
                 <div className="space-y-4">
                   {messages.map((message, index) => (
                     <div
                       key={index}
                       className={`flex gap-3 ${
-                        message.role === "user" ? "justify-end" : "justify-start"
+                        message.role === "user"
+                          ? "justify-end"
+                          : "justify-start"
                       }`}
                     >
                       {message.role === "assistant" && (
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${agentColors[selectedAgent.id]}`}>
+                        <div
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${agentColors[selectedAgent.id]}`}
+                        >
                           {agentIcons[selectedAgent.id]}
                         </div>
                       )}
@@ -391,10 +433,10 @@ export default function AIAgentsPage() {
                             : "bg-muted"
                         }`}
                       >
-                        <div className="text-sm whitespace-pre-wrap">
+                        <div className="whitespace-pre-wrap text-sm">
                           {renderMessageContent(message.content)}
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="mt-2 flex items-center gap-2">
                           <span className="text-xs opacity-60">
                             {message.timestamp.toLocaleTimeString([], {
                               hour: "2-digit",
@@ -402,7 +444,10 @@ export default function AIAgentsPage() {
                             })}
                           </span>
                           {message.model && (
-                            <Badge variant="outline" className="text-xs opacity-60">
+                            <Badge
+                              variant="outline"
+                              className="text-xs opacity-60"
+                            >
                               {message.model}
                             </Badge>
                           )}
@@ -411,11 +456,13 @@ export default function AIAgentsPage() {
                     </div>
                   ))}
                   {isLoading && (
-                    <div className="flex gap-3 justify-start">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${agentColors[selectedAgent.id]}`}>
+                    <div className="flex justify-start gap-3">
+                      <div
+                        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${agentColors[selectedAgent.id]}`}
+                      >
                         {agentIcons[selectedAgent.id]}
                       </div>
-                      <div className="bg-muted rounded-lg p-4">
+                      <div className="rounded-lg bg-muted p-4">
                         <Loader2 className="h-4 w-4 animate-spin" />
                       </div>
                     </div>
@@ -424,7 +471,7 @@ export default function AIAgentsPage() {
                 </div>
               </ScrollArea>
 
-              <div className="p-4 border-t">
+              <div className="border-t p-4">
                 <div className="flex gap-2">
                   <Textarea
                     placeholder={`Ask ${selectedAgent.name} anything...`}
@@ -450,11 +497,11 @@ export default function AIAgentsPage() {
               </div>
             </>
           ) : (
-            <CardContent className="flex-1 flex items-center justify-center">
+            <CardContent className="flex flex-1 items-center justify-center">
               <div className="text-center">
-                <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <Bot className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
                 <p className="text-lg font-medium">No agent selected</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Select an AI agent from the left panel to start chatting
                 </p>
               </div>
@@ -474,41 +521,58 @@ export default function AIAgentsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4 text-sm">
-              <p>To enable full AI capabilities, install Ollama on your Hostinger VPS:</p>
-              
-              <div className="bg-muted rounded-lg p-4 font-mono text-xs space-y-2">
-                <p className="text-muted-foreground"># SSH into your VPS and run:</p>
+              <p>
+                To enable full AI capabilities, install Ollama on your Hostinger
+                VPS:
+              </p>
+
+              <div className="space-y-2 rounded-lg bg-muted p-4 font-mono text-xs">
+                <p className="text-muted-foreground">
+                  # SSH into your VPS and run:
+                </p>
                 <p>curl -fsSL https://ollama.com/install.sh | sh</p>
-                <p className="text-muted-foreground mt-4"># Start Ollama service:</p>
+                <p className="mt-4 text-muted-foreground">
+                  # Start Ollama service:
+                </p>
                 <p>ollama serve</p>
-                <p className="text-muted-foreground mt-4"># Pull recommended models (16GB RAM):</p>
+                <p className="mt-4 text-muted-foreground">
+                  # Pull recommended models (16GB RAM):
+                </p>
                 <p>ollama pull mistral</p>
                 <p>ollama pull codellama:7b</p>
                 <p>ollama pull llama2:7b</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                <div className="p-3 rounded-lg bg-muted/50">
+              <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="rounded-lg bg-muted/50 p-3">
                   <p className="font-medium">Mistral 7B</p>
-                  <p className="text-xs text-muted-foreground">Best for general tasks</p>
+                  <p className="text-xs text-muted-foreground">
+                    Best for general tasks
+                  </p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
+                <div className="rounded-lg bg-muted/50 p-3">
                   <p className="font-medium">CodeLlama 7B</p>
-                  <p className="text-xs text-muted-foreground">Optimized for code</p>
+                  <p className="text-xs text-muted-foreground">
+                    Optimized for code
+                  </p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
+                <div className="rounded-lg bg-muted/50 p-3">
                   <p className="font-medium">Llama2 7B</p>
-                  <p className="text-xs text-muted-foreground">Great for content</p>
+                  <p className="text-xs text-muted-foreground">
+                    Great for content
+                  </p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/50">
+                <div className="rounded-lg bg-muted/50 p-3">
                   <p className="font-medium">Neural Chat</p>
-                  <p className="text-xs text-muted-foreground">Conversational AI</p>
+                  <p className="text-xs text-muted-foreground">
+                    Conversational AI
+                  </p>
                 </div>
               </div>
 
               <p className="text-muted-foreground">
-                With 16GB RAM, you can comfortably run 7B parameter models. For best performance,
-                we recommend Mistral 7B as your primary model.
+                With 16GB RAM, you can comfortably run 7B parameter models. For
+                best performance, we recommend Mistral 7B as your primary model.
               </p>
             </div>
           </CardContent>
