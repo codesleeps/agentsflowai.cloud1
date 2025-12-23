@@ -1,9 +1,23 @@
 "use client";
 
-import { ExternalLink, Home, MessageSquare, Users, Package, TrendingUp, Calendar, Bot, Globe } from "lucide-react";
+import {
+  ExternalLink,
+  Home,
+  MessageSquare,
+  Users,
+  Package,
+  TrendingUp,
+  Calendar,
+  Bot,
+  Globe,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { authClient, getAuthActiveOrganization, getAuthClient } from "@/client-lib/auth-client";
+import {
+  authClient,
+  getAuthActiveOrganization,
+  getAuthClient,
+} from "@/client-lib/auth-client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -29,7 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNavItems = [
-  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/ai-agents", label: "AI Agents", icon: Bot },
   { href: "/chat", label: "AI Chat Agent", icon: MessageSquare },
   { href: "/leads", label: "Leads", icon: Users },
@@ -56,11 +70,11 @@ export function Sidebar() {
   return (
     <SidebarPrimitive collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center justify-between px-[2px] py-2 gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 px-[2px] py-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <SidebarTrigger className="shrink-0" />
             {(state === "expanded" || isMobile) && (
-              <span className="font-semibold text-sidebar-foreground truncate flex items-center gap-2">
+              <span className="flex items-center gap-2 truncate font-semibold text-sidebar-foreground">
                 <Bot className="h-5 w-5 text-primary" />
                 AgentsFlowAI
               </span>
@@ -94,40 +108,61 @@ export function Sidebar() {
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="w-full outline-none">
-                  <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={session.user.image ?? undefined} />
-                      <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-accent-foreground">
-                        {session.user.name?.[0]?.toUpperCase() ?? session.user.email?.[0]?.toUpperCase()}
+                      <AvatarFallback className="bg-sidebar-accent text-xs text-sidebar-accent-foreground">
+                        {session.user.name?.[0]?.toUpperCase() ??
+                          session.user.email?.[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start text-left text-sm">
-                      <span className="font-medium">{session.user.name ?? "User"}</span>
-                      <span className="text-xs text-sidebar-foreground/70">{session.user.email}</span>
+                      <span className="font-medium">
+                        {session.user.name ?? "User"}
+                      </span>
+                      <span className="text-xs text-sidebar-foreground/70">
+                        {session.user.email}
+                      </span>
                     </div>
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" side="right" className="w-56">
+                <DropdownMenuContent
+                  align="start"
+                  side="right"
+                  className="w-56"
+                >
                   <div className="px-2 py-1.5">
-                    <p className="text-xs font-medium text-muted-foreground">Organization</p>
-                    <p className="text-sm">{activeOrganization?.name ?? "No organization selected"}</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Organization
+                    </p>
+                    <p className="text-sm">
+                      {activeOrganization?.name ?? "No organization selected"}
+                    </p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => window.location.href = "/"}
+                    onClick={() => (window.location.href = "/dashboard")}
                   >
-                    Account Settings <ExternalLink className="ml-auto w-4 h-4" />
+                    Dashboard <ExternalLink className="ml-auto h-4 w-4" />
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => window.location.href = "/chat"}
+                    onClick={() => (window.location.href = "/chat")}
                   >
-                    AI Dashboard <ExternalLink className="ml-auto w-4 h-4" />
+                    AI Chat <ExternalLink className="ml-auto h-4 w-4" />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled={true} className="cursor-pointer" onClick={handleSignOut}>
-                    <span className="text-destructive font-semibold">Log out</span>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={handleSignOut}
+                  >
+                    <span className="font-semibold text-destructive">
+                      Log out
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
