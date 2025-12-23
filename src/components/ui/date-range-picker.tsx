@@ -11,9 +11,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+import { DateRange } from "react-day-picker";
+
 interface DateRangePickerProps {
-  value?: { from?: Date; to?: Date };
-  onValueChange?: (value: { from?: Date; to?: Date }) => void;
+  value?: DateRange;
+  onValueChange?: (value: DateRange | undefined) => void;
 }
 
 export function DateRangePicker({
@@ -27,9 +29,8 @@ export function DateRangePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`w-[280px] justify-start text-left font-normal ${
-            !value?.from && !value?.to && "text-muted-foreground"
-          }`}
+          className={`w-[280px] justify-start text-left font-normal ${!value?.from && !value?.to && "text-muted-foreground"
+            }`}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {value?.from ? (
