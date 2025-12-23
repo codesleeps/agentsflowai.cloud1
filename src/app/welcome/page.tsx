@@ -203,7 +203,7 @@ export default function WelcomePage() {
     setIsLoggingIn(true);
 
     try {
-      const { error } = await authClient.signIn.signIn({
+      const { error } = await authClient.signIn.email({
         email: loginForm.email,
         password: loginForm.password,
       });
