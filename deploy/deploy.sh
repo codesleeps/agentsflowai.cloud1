@@ -7,7 +7,7 @@ set -e
 # Configuration
 SERVER="root@srv1187860.hstgr.cloud"
 REMOTE_DIR="/var/www/agentsflow-ai"
-LOCAL_DIR="/Users/test/Desktop/agentsflowai.cloud"
+LOCAL_DIR="/Users/test/Desktop/agentsflowai.cloud/"
 SSH_KEY="~/.ssh/deploy_key"
 
 echo "🚀 Starting deployment to $SERVER..."
@@ -36,6 +36,10 @@ cd /var/www/agentsflow-ai
 # Install dependencies
 echo "Installing npm packages..."
 npm ci --production=false
+
+# Build application
+echo "Building application..."
+npm run build
 
 # Run database migrations
 echo "Running database migrations..."
