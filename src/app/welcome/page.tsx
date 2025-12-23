@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/client-lib/auth-client";
 import {
   Bot,
+  Play,
   MessageSquare,
   Users,
   TrendingUp,
