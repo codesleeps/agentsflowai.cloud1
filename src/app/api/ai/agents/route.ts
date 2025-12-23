@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
 
-    const response = await executeWithFallback(agent, enrichedMessage, conversationHistory, user.id);
+    const response = await executeWithFallback(agent, enrichedMessage, enrichedHistory, user.id);
 
     return NextResponse.json(response);
 
