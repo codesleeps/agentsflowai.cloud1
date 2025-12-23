@@ -1,6 +1,6 @@
 
-import { db } from '@/server-lib/db';
-import {AIProviderCost} from "@prisma/client";
+import { prisma as db } from '@/server-lib/prisma';
+import { AIProviderCost } from "@prisma/client";
 
 interface LogUsageParams {
   user_id: string;
@@ -19,26 +19,26 @@ interface LogUsageParams {
 let providerCosts: AIProviderCost[] | null = null;
 
 async function getProviderCosts(): Promise<AIProviderCost[]> {
-    if (!providerCosts) {
-        providerCosts = await db.aIProviderCost.findMany();
-    }
-    return providerCosts;
+  if (!providerCosts) {
+    providerCosts = await db.aIProviderCost.findMany();
+  }
+  return providerCosts;
 }
 
 
 export async function logModelUsage(params: LogUsageParams) {
   try {
     const cost = await calculateCost(
-        params.provider,
-        params.model,
-        params.prompt_tokens,
-        params.completion_tokens
+      params.provider,
+      params.model,
+      params.prompt_tokens,
+      params.completion_tokens
     );
-    
+
     await db.aIModelUsage.create({
       data: {
-          ...params,
-          cost_usd: cost,
+        ...params,
+        cost_usd: cost,
       }
     });
   } catch (error) {
@@ -47,27 +47,27 @@ export async function logModelUsage(params: LogUsageParams) {
 }
 
 export async function calculateCost(
-    provider: string,
-    model: string,
-    inputTokens: number,
-    outputTokens: number
+  provider: string,
+  model: string,
+  inputTokens: number,
+  outputTokens: number
 ): Promise<number> {
-    const costs = await getProviderCosts();
-    const modelCost = costs.find(c => c.provider === provider && c.model === model);
+  const costs = await getProviderCosts();
+  const modelCost = costs.find(c => c.provider === provider && c.model === model);
 
-    if (!modelCost) {
-        return 0;
-    }
+  if (!modelCost) {
+    return 0;
+  }
 
-    const inputCost = (inputTokens / 1000) * modelCost.input_cost_per_1k_tokens;
-    const outputCost = (outputTokens / 1000) * modelCost.output_cost_per_1k_tokens;
+  const inputCost = (inputTokens / 1000) * modelCost.input_cost_per_1k_tokens;
+  const outputCost = (outputTokens / 1000) * modelCost.output_cost_per_1k_tokens;
 
-    return inputCost + outputCost;
+  return inputCost + outputCost;
 }
 
-export async function getUserUsageStats(userId: string, dateRange: {-readonly [key in string]: string}) {
+export async function getUserUsageStats(userId: string, dateRange: { -readonly [key in string]: string }) {
   const { startDate, endDate } = dateRange;
-  
+
   return db.aIModelUsage.groupBy({
     by: ['provider', 'agent_id'],
     where: {
