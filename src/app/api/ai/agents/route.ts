@@ -8,8 +8,8 @@ import * as cheerio from 'cheerio';
 import axios from 'axios';
 import Anthropic from '@anthropic-ai/sdk';
 import { logModelUsage } from '@/server-lib/ai-usage-tracker';
-import {AIMessage} from "@/shared/models/types";
-import {AIAgent} from "../../../../shared/models/ai-agents";
+import { AIMessage } from "@/shared/models/types";
+import { AIAgent } from "../../../../shared/models/ai-agents";
 
 // Helper to extract text from URL
 async function fetchUrlContent(url: string): Promise<string | null> {
@@ -43,9 +43,9 @@ async function fetchUrlContent(url: string): Promise<string | null> {
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    const { user } = await requireAuth(request);
+    const user = await requireAuth(request);
     if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return NextResponse.json(AI_AGENTS);
@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
   let startTime = Date.now();
   try {
     // Authenticate user
-    const { user } = await requireAuth(request);
-      if (!user) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    const user = await requireAuth(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await request.json();
     console.log('AI Agent Request:', JSON.stringify(body, null, 2));
@@ -102,182 +102,187 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response);
 
   } catch (error) {
-      const userId = (await requireAuth(request))?.user?.id || 'unknown';
-      logModelUsage({
-          user_id: userId,
-          agent_id: 'error-handler',
-          provider: 'system',
-          model: 'error',
-          prompt_tokens: 0,
-          completion_tokens: 0,
-          cost_usd: 0,
-          latency_ms: Date.now() - startTime,
-          status: 'failed',
-          error_message: error instanceof Error ? error.message : String(error),
-      });
+    const authUser = await requireAuth(request).catch(() => null);
+    const userId = authUser?.id || 'unknown';
+    logModelUsage({
+      user_id: userId,
+      agent_id: 'error-handler',
+      provider: 'system',
+      model: 'error',
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      cost_usd: 0,
+      latency_ms: Date.now() - startTime,
+      status: 'failed',
+      error_message: error instanceof Error ? error.message : String(error),
+    });
     return handleApiError(error);
   }
 }
 
 async function handleAnthropicProvider(agent: AIAgent, messages: AIMessage[], systemPrompt: string) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not defined');
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not defined');
 
-    const anthropic = new Anthropic({ apiKey });
+  const anthropic = new Anthropic({ apiKey });
 
-    const response = await anthropic.messages.create({
-        model: agent.model,
-        system: systemPrompt,
-        messages: messages.map(msg => ({ role: msg.role, content: msg.content })),
-        max_tokens: 2048,
-    });
+  const response = await anthropic.messages.create({
+    model: agent.model,
+    system: systemPrompt,
+    messages: messages
+      .filter(msg => msg.role !== 'system')
+      .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content })),
+    max_tokens: 2048,
+  });
 
-    return {
-        response: response.content[0].text,
-        tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
-    };
+  const textContent = response.content[0].type === 'text' ? response.content[0].text : '';
+
+  return {
+    response: textContent,
+    tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
+  };
 }
 
 async function handleGoogleProvider(agent: AIAgent, message: string, conversationHistory: AIMessage[], systemPrompt: string) {
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
 
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: agent.model });
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: agent.model });
 
-    const history = (conversationHistory || []).map((msg: any) => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-    }));
+  const history = (conversationHistory || []).map((msg: any) => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }],
+  }));
 
-    const chat = model.startChat({
-        history,
-        generationConfig: { maxOutputTokens: 2048 },
-        systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
-    });
+  const chat = model.startChat({
+    history,
+    generationConfig: { maxOutputTokens: 2048 },
+    systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
+  });
 
-    const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
+  const result = await chat.sendMessage(message);
+  const responseText = result.response.text();
 
-    return {
-        response: responseText,
-        tokensUsed: 0, // Not easily available
-    };
+  return {
+    response: responseText,
+    tokensUsed: 0, // Not easily available
+  };
 }
 
 async function handleOllamaProvider(agent: AIAgent, messages: AIMessage[]) {
-    const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            model: agent.model,
-            messages,
-            stream: false,
-            options: { temperature: 0.7, top_p: 0.9, num_predict: 2048 },
-        }),
-    });
+  const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+  const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: agent.model,
+      messages,
+      stream: false,
+      options: { temperature: 0.7, top_p: 0.9, num_predict: 2048 },
+    }),
+  });
 
-    if (!ollamaResponse.ok) throw new Error(`Ollama API returned ${ollamaResponse.status}`);
-    const data = await ollamaResponse.json();
+  if (!ollamaResponse.ok) throw new Error(`Ollama API returned ${ollamaResponse.status}`);
+  const data = await ollamaResponse.json();
 
-    return {
-        response: data.message?.content || data.response,
-        tokensUsed: data.eval_count,
-    };
+  return {
+    response: data.message?.content || data.response,
+    tokensUsed: data.eval_count,
+  };
 }
 
 
 async function executeWithFallback(agent: AIAgent, message: string, conversationHistory: AIMessage[], userId: string) {
-    const providers = agent.supportedProviders.sort((a, b) => a.priority - b.priority);
-    let lastError: Error | null = null;
-    const startTime = Date.now();
+  const providers = agent.supportedProviders.sort((a, b) => a.priority - b.priority);
+  let lastError: Error | null = null;
+  const startTime = Date.now();
 
-    const messages: AIMessage[] = [
-        ...conversationHistory,
-        { role: 'user', content: message, agentId: agent.id, id: conversationHistory.length.toString(), timestamp: new Date() },
-    ];
-    
-    for (const providerConfig of providers) {
-        const { provider, model } = providerConfig;
-        try {
-            let result;
-            const systemPrompt = agent.systemPrompt;
-            
-            if (provider === 'anthropic') {
-                result = await handleAnthropicProvider({ ...agent, model }, messages, systemPrompt);
-            } else if (provider === 'google') {
-                result = await handleGoogleProvider({ ...agent, model }, message, conversationHistory, systemPrompt);
-            } else if (provider === 'ollama') {
-                result = await handleOllamaProvider({ ...agent, model }, messages);
-            } else {
-                continue; // Skip unsupported providers
-            }
+  const messages: AIMessage[] = [
+    ...conversationHistory,
+    { role: 'user', content: message, agentId: agent.id, id: conversationHistory.length.toString(), timestamp: new Date() },
+  ];
 
-            const latency = Date.now() - startTime;
-            await logModelUsage({
-                user_id: userId,
-                agent_id: agent.id,
-                provider,
-                model,
-                prompt_tokens: 0, // Simplified for now
-                completion_tokens: result.tokensUsed || 0,
-                cost_usd: 0, // TODO: Implement cost calculation
-                latency_ms: latency,
-                status: 'success',
-            });
-            
-            return {
-                response: result.response,
-                model,
-                agentId: agent.id,
-                agentName: agent.name,
-                tokensUsed: result.tokensUsed,
-                generationTime: latency,
-                fallbackUsed: provider !== agent.defaultProvider,
-                usedProvider: provider,
-            };
-        } catch (error) {
-            lastError = error instanceof Error ? error : new Error(String(error));
-            console.warn(`Provider ${provider} (${model}) failed: ${lastError.message}. Trying next provider.`);
-            await logModelUsage({
-                user_id: userId,
-                agent_id: agent.id,
-                provider,
-                model,
-                prompt_tokens: 0,
-                completion_tokens: 0,
-                cost_usd: 0,
-                latency_ms: Date.now() - startTime,
-                status: 'failed',
-                error_message: lastError.message,
-            });
-        }
-    }
+  for (const providerConfig of providers) {
+    const { provider, model } = providerConfig;
+    try {
+      let result;
+      const systemPrompt = agent.systemPrompt;
 
-    // If all providers fail, use static fallback
-    const latency = Date.now() - startTime;
-    await logModelUsage({
+      if (provider === 'anthropic') {
+        result = await handleAnthropicProvider({ ...agent, model }, messages, systemPrompt);
+      } else if (provider === 'google') {
+        result = await handleGoogleProvider({ ...agent, model }, message, conversationHistory, systemPrompt);
+      } else if (provider === 'ollama') {
+        result = await handleOllamaProvider({ ...agent, model }, messages);
+      } else {
+        continue; // Skip unsupported providers
+      }
+
+      const latency = Date.now() - startTime;
+      await logModelUsage({
         user_id: userId,
         agent_id: agent.id,
-        provider: 'fallback',
-        model: 'static',
+        provider,
+        model,
+        prompt_tokens: 0, // Simplified for now
+        completion_tokens: result.tokensUsed || 0,
+        cost_usd: 0, // TODO: Implement cost calculation
+        latency_ms: latency,
+        status: 'success',
+      });
+
+      return {
+        response: result.response,
+        model,
+        agentId: agent.id,
+        agentName: agent.name,
+        tokensUsed: result.tokensUsed,
+        generationTime: latency,
+        fallbackUsed: provider !== agent.defaultProvider,
+        usedProvider: provider,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`Provider ${provider} (${model}) failed: ${lastError.message}. Trying next provider.`);
+      await logModelUsage({
+        user_id: userId,
+        agent_id: agent.id,
+        provider,
+        model,
         prompt_tokens: 0,
         completion_tokens: 0,
         cost_usd: 0,
-        latency_ms: latency,
-        status: 'fallback',
-        error_message: lastError?.message || 'All providers failed',
-    });
+        latency_ms: Date.now() - startTime,
+        status: 'failed',
+        error_message: lastError.message,
+      });
+    }
+  }
 
-    return {
-        response: generateFallbackResponse(agent.id, message),
-        model: 'fallback',
-        agentId: agent.id,
-        agentName: agent.name,
-        note: `All AI providers are currently unavailable. Using offline fallback mode. Last error: ${lastError?.message}`,
-    };
+  // If all providers fail, use static fallback
+  const latency = Date.now() - startTime;
+  await logModelUsage({
+    user_id: userId,
+    agent_id: agent.id,
+    provider: 'fallback',
+    model: 'static',
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    cost_usd: 0,
+    latency_ms: latency,
+    status: 'fallback',
+    error_message: lastError?.message || 'All providers failed',
+  });
+
+  return {
+    response: generateFallbackResponse(agent.id, message),
+    model: 'fallback',
+    agentId: agent.id,
+    agentName: agent.name,
+    note: `All AI providers are currently unavailable. Using offline fallback mode. Last error: ${lastError?.message}`,
+  };
 }
 
 

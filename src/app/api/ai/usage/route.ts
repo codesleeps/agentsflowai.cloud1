@@ -12,7 +12,7 @@ const UsageQuerySchema = z.object({
 
 export async function GET(request: NextRequest) {
     try {
-        const { user } = await requireAuth(request);
+        const user = await requireAuth(request);
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         }
 
         const validatedQuery = UsageQuerySchema.parse(query);
-        
+
         const usageStats = await getUserUsageStats(user.id, validatedQuery);
 
         return NextResponse.json(usageStats);
