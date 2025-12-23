@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // Enums for validation
@@ -28,6 +29,7 @@ const ChannelEnum = z.enum(["chat", "email", "phone"]);
 const RoleEnum = z.enum(["user", "assistant", "system"]);
 const ServiceTierEnum = z.enum(["basic", "growth", "enterprise"]);
 const OllamaActionEnum = z.enum(["generate", "chat", "models", "pull"]);
+const AIProviderEnum = z.enum(["ollama", "google", "anthropic", "openai"]);
 
 // Phone number regex (basic international format)
 const phoneRegex = /^\+?[\d\s\-\(\)]{7,}$/;
@@ -160,6 +162,26 @@ export const AIAgentRequestSchema = z.object({
       }),
     )
     .optional(),
+  preferredProvider: AIProviderEnum.optional(),
+});
+
+export const ModelConfigSchema = z.object({
+    agentId: z.string(),
+    primaryProvider: AIProviderEnum,
+    primaryModel: z.string(),
+    fallbackChain: z.array(z.object({
+        provider: AIProviderEnum,
+        model: z.string(),
+        priority: z.number(),
+    })),
+});
+
+export const UsageQuerySchema = z.object({
+    userId: z.string().uuid(),
+    dateRange: z.object({
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+    }),
 });
 
 // Query parameter schemas
@@ -199,3 +221,4 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: any): T {
 
   return validated;
 }
+

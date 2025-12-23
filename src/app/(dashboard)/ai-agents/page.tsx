@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -29,7 +30,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useOllamaStatus, useAIAgents, generateAgentResponse } from "@/client-lib/ai-agents-client";
 import { toast } from "sonner";
-import type { AIAgent } from "@/shared/models/ai-agents";
+import type { AIAgent, AIProvider } from "@/shared/models/ai-agents";
+import { ModelSelector } from "@/components/ModelSelector";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -65,6 +67,7 @@ export default function AIAgentsPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [currentModel, setCurrentModel] = useState<{ provider: AIProvider, model: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -77,6 +80,7 @@ export default function AIAgentsPage() {
 
   const handleSelectAgent = (agent: AIAgent) => {
     setSelectedAgent(agent);
+    setCurrentModel({ provider: agent.defaultProvider as AIProvider, model: agent.model });
     setMessages([
       {
         role: "assistant",
@@ -85,6 +89,11 @@ export default function AIAgentsPage() {
         agentId: agent.id,
       },
     ]);
+  };
+
+  const handleModelChange = (provider: AIProvider, model: string) => {
+    setCurrentModel({ provider, model });
+    toast.info(`Switched to ${provider} model: ${model}`);
   };
 
   const handleSend = async () => {
@@ -109,7 +118,8 @@ export default function AIAgentsPage() {
       const response = await generateAgentResponse(
         selectedAgent.id,
         userMessage.content,
-        conversationHistory
+        conversationHistory,
+        currentModel?.provider
       );
 
       const assistantMessage: ChatMessage = {
@@ -131,7 +141,7 @@ export default function AIAgentsPage() {
       
       const errorMessage: ChatMessage = {
         role: "assistant",
-        content: "I apologize, but I encountered an error. Please try again or check if Ollama is running on your VPS.",
+        content: "I apologize, but I encountered an error. Please try again or check if the selected AI provider is available.",
         timestamp: new Date(),
         agentId: selectedAgent.id,
       };
@@ -215,7 +225,7 @@ export default function AIAgentsPage() {
             AI Agents Hub
           </h1>
           <p className="text-muted-foreground mt-1">
-            Specialized AI agents powered by local LLMs (Ollama)
+            Specialized AI agents with multi-provider support
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -333,19 +343,17 @@ export default function AIAgentsPage() {
         <Card className="lg:col-span-2 flex flex-col">
           <CardHeader className="border-b">
             {selectedAgent ? (
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${agentColors[selectedAgent.id]}`}>
-                  {agentIcons[selectedAgent.id]}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${agentColors[selectedAgent.id]}`}>
+                    {agentIcons[selectedAgent.id]}
+                    </div>
+                    <div>
+                    <CardTitle>{selectedAgent.name}</CardTitle>
+                    <CardDescription>{selectedAgent.description}</CardDescription>
+                    </div>
                 </div>
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {selectedAgent.name}
-                    <Badge variant="outline" className="text-xs">
-                      {selectedAgent.model}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>{selectedAgent.description}</CardDescription>
-                </div>
+                <ModelSelector agent={selectedAgent} onModelChange={handleModelChange} />
               </div>
             ) : (
               <div className="flex items-center gap-3">

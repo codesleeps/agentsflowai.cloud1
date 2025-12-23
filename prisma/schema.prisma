@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,6 +6,18 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  name          String?
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  AIModelConfig AIModelConfig[]
+  AIModelUsage  AIModelUsage[]
+
+  @@map("users")
 }
 
 model Service {
@@ -102,3 +115,57 @@ model AnalyticsEvent {
 
   @@map("analytics_events")
 }
+
+model AIModelUsage {
+  id                String   @id @default(uuid())
+  user_id           String
+  agent_id          String
+  provider          String // 'ollama' | 'google' | 'anthropic' | 'openai'
+  model             String
+  prompt_tokens     Int
+  completion_tokens Int
+  total_tokens      Int
+  cost_usd          Float
+  latency_ms        Int
+  status            String // 'success' | 'failed' | 'fallback'
+  error_message     String?
+  created_at        DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([agent_id])
+  @@index([provider])
+  @@index([created_at])
+  @@map("ai_model_usage")
+}
+
+model AIModelConfig {
+  id               String   @id @default(uuid())
+  user_id          String
+  agent_id         String
+  primary_provider String
+  primary_model    String
+  fallback_chain   Json // JSON array
+  max_tokens       Int?
+  temperature      Float?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, agent_id])
+  @@map("ai_model_config")
+}
+
+model AIProviderCost {
+  id                       String   @id @default(uuid())
+  provider                 String
+  model                    String
+  input_cost_per_1k_tokens Float
+  output_cost_per_1k_tokens Float
+  updated_at               DateTime @updatedAt
+
+  @@map("ai_provider_costs")
+}
+

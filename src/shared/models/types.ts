@@ -106,3 +106,16 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
 }
+
+export interface AIMessage {
+    id: string;
+    agentId: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: Date;
+    metadata?: {
+        model?: string;
+        tokensUsed?: number;
+        generationTime?: number;
+    };
+}
