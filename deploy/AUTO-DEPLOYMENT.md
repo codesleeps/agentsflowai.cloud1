@@ -2,13 +2,185 @@
 
 This guide explains how to set up automatic deployments when code is pushed to GitHub.
 
+## How PM2 Deploy Works (Option 3)
+
+**PM2 Deploy** is a built-in feature of PM2 that enables **"git push to deploy"** functionality. Here's how it works:
+
+```
+┌─────────────────┐     git push      ┌─────────────────┐
+│  Your Laptop    │ ─────────────────▶│   GitHub        │
+└─────────────────┘                   └─────────────────┘
+                                            │
+                                            │ Webhook (optional)
+                                            ▼
+                                      ┌─────────────────┐
+                                      │   Your VPS      │
+                                      │  pm2 deploy     │
+                                      │  pulls from Git │
+                                      └─────────────────┘
+                                            │
+                                            │ pm2 runs
+                                            ▼
+                                      ┌─────────────────┐
+                                      │  npm install    │
+                                      │  npm run build  │
+                                      │  pm2 restart    │
+                                      └─────────────────┘
+```
+
+**Key Benefits:**
+
+- ✅ **Built-in**: No external services needed
+- ✅ **Simple**: Just `pm2 deploy` command
+- ✅ **Atomic**: Full clone before deployment, swap on success
+- ✅ **Rollback**: Easy rollback to previous version
+- ✅ **SSH-based**: Secure authentication with SSH keys
+
+---
+
+## Option 3: PM2 Deploy (Built-in) - DETAILED IMPLEMENTATION
+
+### How It Works
+
+PM2 Deploy clones your repository to the server and manages deployments automatically:
+
+1. **First Setup**: PM2 clones repo to `/var/www/agentsflow-ai`
+2. **On Push**: You run `pm2 deploy production` (or webhook triggers it)
+3. **PM2 Process**:
+   - Creates a new folder with the latest code
+   - Runs `npm ci` to install dependencies
+   - Runs `npm run build` to build the app
+   - Swaps from old version to new (zero downtime)
+   - Keeps previous version for rollback
+
+### Implementation
+
+**Step 1: Update ecosystem.config.cjs**
+
+The config file now includes a `deploy` section. Already updated!
+
+**Step 2: Generate SSH Key for Deploy**
+
+```bash
+# On your local machine
+ssh-keygen -t ed25519 -C "deploy@agentsflowai.cloud" -f ~/.ssh/deploy_key
+
+# Add to SSH agent
+ssh-add ~/.ssh/deploy_key
+
+# Copy public key to server
+ssh-copy-id -i ~/.ssh/deploy_key.pub deploy@agentsflowai.cloud
+
+# Or manually add to server's ~/.ssh/authorized_keys
+cat ~/.ssh/deploy_key.pub | ssh deploy@agentsflowai.cloud "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+```
+
+**Step 3: Create Deploy User on VPS (if needed)**
+
+```bash
+# SSH into VPS as root
+ssh root@agentsflowai.cloud
+
+# Create deploy user
+adduser deploy
+
+# Add to sudo group
+usermod -aG sudo deploy
+
+# Create directory
+mkdir -p /var/www
+chown deploy:deploy /var/www
+```
+
+**Step 4: Prepare Repository on VPS**
+
+```bash
+# SSH as deploy user
+ssh deploy@agentsflowai.cloud
+
+# Create app directory
+mkdir -p /var/www/agentsflow-ai
+cd /var/www/agentsflow-ai
+
+# Initialize git (for first time)
+git init
+git remote add origin https://github.com/your-org/agentsflow-ai.cloud.git
+
+# Or clone existing repo
+# git clone https://github.com/your-org/agentsflow-ai.cloud.git .
+```
+
+**Step 5: Create Log Directory**
+
+```bash
+# On VPS
+sudo mkdir -p /var/log/pm2
+sudo chown deploy:deploy /var/log/pm2
+```
+
+**Step 6: Initial Setup Deploy**
+
+```bash
+# From your local machine
+pm2 deploy ecosystem.config.cjs production setup
+
+# This will:
+# 1. Clone the repo to /var/www/agentsflow-ai
+# 2. Run npm ci
+# 3. Run npm run build
+# 4. Start the app with PM2
+```
+
+**Step 7: Deploy After Changes**
+
+```bash
+# After committing and pushing to GitHub
+pm2 deploy ecosystem.config.cjs production
+
+# PM2 will:
+# 1. Pull latest code
+# 2. Install dependencies
+# 3. Build the app
+# 4. Zero-downtime restart
+```
+
+---
+
 ## Option 1: Simple Webhook (Recommended)
+
+### How It Works
+
+```
+┌─────────────────┐    push     ┌─────────────────┐
+│  Your Laptop    │ ───────────▶│   GitHub        │
+└─────────────────┘             └─────────────────┘
+                                        │
+                                   webhook fires
+                                        │
+                                        ▼
+                                  ┌─────────────────┐
+                                  │  GitHub sends   │
+                                  │  POST request   │
+                                  └─────────────────┘
+                                        │
+                                        ▼
+                                  ┌─────────────────┐
+                                  │  VPS webhook    │
+                                  │  receiver       │
+                                  └─────────────────┘
+                                        │
+                                        ▼
+                                  ┌─────────────────┐
+                                  │  Runs deploy    │
+                                  │  script         │
+                                  └─────────────────┘
+```
 
 ### Step 1: Install webhook receiver on VPS
 
 ```bash
 # SSH into your VPS
-ssh your-user@agentsflowai.cloud
+ssh deploy@agentsflowai.cloud
 
 # Install webhook
 sudo apt-get install webhook -y
@@ -19,13 +191,13 @@ sudo npm install -g webhook
 
 ### Step 2: Create webhook configuration
 
-Create `/home/your-user/hooks.json`:
+Create `/home/deploy/hooks.json`:
 
 ```json
 [
   {
     "id": "deploy-agentflow",
-    "execute-command": "/home/your-user/deploy.sh",
+    "execute-command": "/home/deploy/deploy.sh",
     "command-working-directory": "/var/www/agentsflow-ai",
     "include-request-body": true,
     "include-command-output-in-response": true,
@@ -42,24 +214,26 @@ Create `/home/your-user/hooks.json`:
 
 ### Step 3: Create deploy script
 
-Create `/home/your-user/deploy.sh`:
+Create `/home/deploy/deploy.sh`:
 
 ```bash
 #!/bin/bash
 cd /var/www/agentsflow-ai
-./deploy/deploy.sh main
+git pull origin main
+npm ci --production=false
+npm run build
+pm2 reload ecosystem.config.cjs --env production
 ```
 
 Make it executable:
 
 ```bash
-chmod +x /home/your-user/deploy.sh
-chmod +x /var/www/agentsflow-ai/deploy/deploy.sh
+chmod +x /home/deploy/deploy.sh
 ```
 
 ### Step 4: Start webhook service
 
-Create systemd service `/etc/systemd/system/webhook.service`:
+Create `/etc/systemd/system/webhook.service`:
 
 ```ini
 [Unit]
@@ -68,9 +242,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=your-user
-WorkingDirectory=/home/your-user
-ExecStart=/usr/bin/webhook -hooks /home/your-user/hooks.json -hotreload
+User=deploy
+WorkingDirectory=/home/deploy
+ExecStart=/usr/bin/webhook -hooks /home/deploy/hooks.json -hotreload
 Restart=always
 
 [Install]
@@ -88,30 +262,42 @@ sudo systemctl status webhook
 
 ### Step 5: Configure GitHub Webhook
 
-1. Go to your GitHub repository → Settings → Webhooks → Add webhook
+1. Go to GitHub repo → Settings → Webhooks → Add webhook
 2. Fill in:
-   - **Payload URL**: `https://agentsflowai.cloud/api/webhook` (or your server IP)
+   - **Payload URL**: `https://agentsflowai.cloud/api/webhook`
    - **Content type**: `application/json`
-   - **Secret**: (create a random string)
+   - **Secret**: (generate with `openssl rand -hex 32`)
 3. Select events: **Just the push event**
 4. Click "Add webhook"
-
-### Step 6: Generate webhook secret
-
-```bash
-# Generate a secure secret
-openssl rand -hex 32
-```
-
-Add this secret to:
-
-- GitHub webhook settings
-- Your hooks.json file
-- Environment variable on VPS: `export GITHUB_WEBHOOK_SECRET="your-secret"`
 
 ---
 
 ## Option 2: GitHub Actions (CI/CD)
+
+### How It Works
+
+```
+┌─────────────────┐    push     ┌─────────────────┐
+│  Your Laptop    │ ───────────▶│   GitHub        │
+└─────────────────┘             └─────────────────┘
+                                        │
+                                   GitHub Actions
+                                        │
+                                        ▼
+                                  ┌─────────────────┐
+                                  │  CI/CD Pipeline │
+                                  │  - Checkout     │
+                                  │  - Install      │
+                                  │  - Build        │
+                                  └─────────────────┘
+                                        │
+                                        ▼
+                                  ┌─────────────────┐
+                                  │  SSH to VPS     │
+                                  │  - Pull code    │
+                                  │  - Restart PM2  │
+                                  └─────────────────┘
+```
 
 Create `.github/workflows/deploy.yml`:
 
@@ -144,31 +330,19 @@ jobs:
             pm2 reload ecosystem.config.cjs --env production
 ```
 
-Add secrets to GitHub repository:
-
-- `VPS_HOST` - Server IP or hostname
-- `VPS_USER` - SSH username
-- `VPS_SSH_KEY` - SSH private key
+Add secrets to GitHub: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`
 
 ---
 
-## Option 3: PM2 Plus (Built-in)
+## Testing
 
-PM2 Plus provides monitoring and keymetrics deployment:
+### Test PM2 Deploy
 
 ```bash
-# Link your app to PM2 Plus
-pm2 link <secret_key> <public_key>
-
-# Enable deployment tracking
-pm2 deploy ecosystem.config.cjs production setup
+pm2 deploy ecosystem.config.cjs production
 ```
 
----
-
-## Testing the Webhook
-
-### Test locally:
+### Test Webhook
 
 ```bash
 curl -X POST http://localhost:9000/hooks/deploy-agentflow \
@@ -176,66 +350,24 @@ curl -X POST http://localhost:9000/hooks/deploy-agentflow \
   -d '{"ref": "refs/heads/main", "repository": {"full_name": "user/repo"}}'
 ```
 
-### Test the deploy script:
+### Test GitHub Actions
 
-```bash
-# On VPS
-./deploy/deploy.sh main
-```
+Push to main branch and watch Actions tab
 
 ---
-
-## Troubleshooting
-
-### Webhook not triggering
-
-1. Check webhook delivery logs in GitHub
-2. Verify firewall allows port 9000
-3. Check webhook service status: `sudo systemctl status webhook`
-
-### Deployment fails
-
-1. Check logs: `tail -f /var/log/agentsflow-deploy.log`
-2. Verify SSH keys if using GitHub Actions
-3. Check PM2 status: `pm2 status`
-
-### Build fails
-
-1. Check Node.js version: `node --version` (requires v24.x)
-2. Verify environment variables: `printenv | grep -i DATABASE`
-3. Check npm install: `npm ci` should work without errors
-
----
-
-## Security Considerations
-
-1. **Use HTTPS** for webhook endpoint
-2. **Verify webhook signatures** to prevent unauthorized deploys
-3. **Limit webhook scope** to just push events
-4. **Rotate secrets periodically**
-5. **Monitor deployment logs** for suspicious activity
-6. **Set up rollback** procedure before enabling auto-deploy
 
 ## Rollback Procedure
 
-If auto-deployment breaks the site:
+If deployment breaks the site:
 
 ```bash
-# SSH into VPS
-ssh your-user@agentsflowai.cloud
+# PM2 Deploy rollback
+pm2 deploy ecosystem.config.cjs production revert
 
-# List backups
-ls -la /var/backups/agentsflow-ai/
-
-# Restore backup
-./deploy/rollback.sh backup-YYYYMMDD-HHMMSS.tar.gz
-
-# Or manually
+# Or manual rollback
+ssh deploy@agentsflowai.cloud
 cd /var/www/agentsflow-ai
-git checkout previous-commit
-npm ci
-npm run build
-pm2 reload ecosystem.config.cjs --env production
+pm2 resurrect  # Restore previous version
 ```
 
 ---
@@ -246,7 +378,8 @@ pm2 reload ecosystem.config.cjs --env production
 ✅ Database synced
 ✅ Seed data applied
 ✅ Test script passed
-☐ Webhook deployment (in progress)
+✅ Welcome page → Login flow
+✅ PM2 Deploy configured
 ☐ Production deployment
-
-After setting up the webhook, commit and push these changes to trigger your first automatic deployment!
+☐ GitHub webhook configured (Option 1)
+☐ GitHub Actions configured (Option 2)
