@@ -79,8 +79,8 @@ model LeadEnrichment {
   linkedin_url         String?
   twitter_url          String?
   github_url           String?
-  tech_stack           String[]
-  skills               String[]
+  tech_stack           String[] @default([])
+  skills               String[] @default([])
   social_profiles      Json?
   enriched_at          DateTime
   created_at           DateTime @default(now())
