@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/client-lib/auth-client";
 import {
   Bot,
-  Play,
   MessageSquare,
   Users,
   TrendingUp,
@@ -26,8 +25,6 @@ import {
   Menu,
   X,
   Loader2,
-  ChevronRight,
-  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -206,7 +203,7 @@ export default function WelcomePage() {
     setIsLoggingIn(true);
 
     try {
-      const { error } = await authClient.signIn.email({
+      const { error } = await authClient.signIn.signIn({
         email: loginForm.email,
         password: loginForm.password,
       });

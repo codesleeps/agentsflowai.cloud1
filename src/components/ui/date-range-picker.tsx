@@ -11,11 +11,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { DateRange } from "react-day-picker";
-
 interface DateRangePickerProps {
-  value?: DateRange;
-  onValueChange?: (value: DateRange | undefined) => void;
+  value?: { from?: Date; to?: Date };
+  onValueChange?: (value: { from?: Date; to?: Date }) => void;
 }
 
 export function DateRangePicker({
