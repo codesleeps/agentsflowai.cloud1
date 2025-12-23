@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // Enums for validation
@@ -25,7 +24,63 @@ const LeadTimelineEnum = z.enum([
   "6_12_months",
   "12_plus_months",
 ]);
-const ChannelEnum = z.enum(["chat", "email", "phone"]);
+const ChannelEnum = z.enum([
+  "chat",
+  "email",
+  "phone",
+  "whatsapp",
+  "sms",
+  "messenger",
+  "instagram",
+]);
+const EnrichmentSourceEnum = z.enum([
+  "people_data_labs",
+  "forager",
+  "crustdata",
+]);
+const EmailCampaignStatusEnum = z.enum([
+  "draft",
+  "active",
+  "paused",
+  "completed",
+]);
+const EmailSentStatusEnum = z.enum([
+  "queued",
+  "sent",
+  "delivered",
+  "opened",
+  "clicked",
+  "bounced",
+  "failed",
+]);
+const WorkflowStatusEnum = z.enum(["draft", "active", "paused", "archived"]);
+const WorkflowTriggerTypeEnum = z.enum([
+  "lead_created",
+  "lead_status_changed",
+  "email_opened",
+  "email_clicked",
+  "form_submitted",
+  "appointment_scheduled",
+  "time_based",
+  "webhook",
+]);
+const WorkflowActionTypeEnum = z.enum([
+  "send_email",
+  "update_lead",
+  "create_task",
+  "call_webhook",
+  "run_ai_agent",
+  "wait",
+  "condition",
+]);
+const IntentSignalTypeEnum = z.enum([
+  "website_visit",
+  "email_open",
+  "email_click",
+  "form_submit",
+  "chat_message",
+  "social_interaction",
+]);
 const RoleEnum = z.enum(["user", "assistant", "system"]);
 const ServiceTierEnum = z.enum(["basic", "growth", "enterprise"]);
 const OllamaActionEnum = z.enum(["generate", "chat", "models", "pull"]);
@@ -166,22 +221,24 @@ export const AIAgentRequestSchema = z.object({
 });
 
 export const ModelConfigSchema = z.object({
-    agentId: z.string(),
-    primaryProvider: AIProviderEnum,
-    primaryModel: z.string(),
-    fallbackChain: z.array(z.object({
-        provider: AIProviderEnum,
-        model: z.string(),
-        priority: z.number(),
-    })),
+  agentId: z.string(),
+  primaryProvider: AIProviderEnum,
+  primaryModel: z.string(),
+  fallbackChain: z.array(
+    z.object({
+      provider: AIProviderEnum,
+      model: z.string(),
+      priority: z.number(),
+    }),
+  ),
 });
 
 export const UsageQuerySchema = z.object({
-    userId: z.string().uuid(),
-    dateRange: z.object({
-        startDate: z.string().datetime(),
-        endDate: z.string().datetime(),
-    }),
+  userId: z.string().uuid(),
+  dateRange: z.object({
+    startDate: z.string().datetime(),
+    endDate: z.string().datetime(),
+  }),
 });
 
 // Query parameter schemas
@@ -199,6 +256,113 @@ export const PaginationSchema = z.object({
   search: z.string().optional(),
   status: LeadStatusEnum.optional(),
   source: LeadSourceEnum.optional(),
+});
+
+// ============================================
+// LEAD ENRICHMENT VALIDATION SCHEMAS
+// ============================================
+
+export const LeadEnrichmentCreateSchema = z.object({
+  lead_id: z.string().uuid("Invalid lead ID format"),
+  source: EnrichmentSourceEnum,
+  enrichment_data: z.record(z.any()),
+  confidence_score: z.number().min(0).max(1).optional(),
+  company_name: z.string().max(200).optional(),
+  company_size: z.string().max(100).optional(),
+  company_industry: z.string().max(100).optional(),
+  company_website: z.string().url().optional(),
+  job_title: z.string().max(200).optional(),
+  linkedin_url: z.string().url().optional(),
+  tech_stack: z.array(z.string()).optional(),
+  skills: z.array(z.string()).optional(),
+});
+
+export const IntentSignalCreateSchema = z.object({
+  lead_id: z.string().uuid("Invalid lead ID format"),
+  signal_type: IntentSignalTypeEnum,
+  signal_data: z.record(z.any()),
+  score_impact: z.number(),
+});
+
+// ============================================
+// EMAIL CAMPAIGN VALIDATION SCHEMAS
+// ============================================
+
+export const EmailCampaignCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  target_audience: z.record(z.any()).optional(),
+});
+
+export const EmailCampaignUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  status: EmailCampaignStatusEnum.optional(),
+});
+
+export const EmailTemplateCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  subject: z.string().min(1).max(500),
+  body: z.string().min(1),
+  variables: z.array(z.string()),
+  category: z.string().optional(),
+  is_ai_generated: z.boolean().optional(),
+});
+
+export const EmailSequenceStepCreateSchema = z.object({
+  campaign_id: z.string().uuid("Invalid campaign ID format"),
+  template_id: z.string().uuid("Invalid template ID format"),
+  step_number: z.number().int().min(1),
+  delay_hours: z.number().int().min(0),
+  condition: z.record(z.any()).optional(),
+});
+
+// ============================================
+// WORKFLOW AUTOMATION VALIDATION SCHEMAS
+// ============================================
+
+export const WorkflowCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  status: WorkflowStatusEnum.optional(),
+  is_template: z.boolean().optional(),
+  template_category: z.string().optional(),
+});
+
+export const WorkflowUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(1000).optional(),
+  status: WorkflowStatusEnum.optional(),
+});
+
+export const WorkflowTriggerCreateSchema = z.object({
+  workflow_id: z.string().uuid("Invalid workflow ID format"),
+  trigger_type: WorkflowTriggerTypeEnum,
+  trigger_config: z.record(z.any()),
+  is_active: z.boolean().optional(),
+});
+
+export const WorkflowActionCreateSchema = z.object({
+  workflow_id: z.string().uuid("Invalid workflow ID format"),
+  action_type: WorkflowActionTypeEnum,
+  action_config: z.record(z.any()),
+  order: z.number().int().min(0),
+  parent_action_id: z.string().uuid().optional(),
+  condition: z.record(z.any()).optional(),
+});
+
+// ============================================
+// MULTI-CHANNEL VALIDATION SCHEMAS
+// ============================================
+
+export const ChannelConfigCreateSchema = z.object({
+  channel_type: z.enum(["whatsapp", "sms", "messenger", "instagram", "email"]),
+  is_active: z.boolean().optional(),
+  provider: z.string(),
+  api_credentials: z.record(z.any()).optional(),
+  webhook_url: z.string().url().optional(),
+  phone_number: z.string().optional(),
+  page_id: z.string().optional(),
 });
 
 // Utility function to sanitize strings
@@ -221,4 +385,3 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: any): T {
 
   return validated;
 }
-

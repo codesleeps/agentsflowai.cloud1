@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -24,7 +23,7 @@ model Service {
   id          String   @id @default(uuid())
   name        String
   description String
-  tier        String   // 'basic' | 'growth' | 'enterprise'
+  tier        String // 'basic' | 'growth' | 'enterprise'
   price       Float
   features    String[]
   is_active   Boolean  @default(true)
@@ -43,41 +42,336 @@ model Lead {
   status       String    @default("new") // 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost'
   score        Int       @default(0)
   source       String    @default("website") // 'website' | 'chat' | 'referral' | 'ads'
-  budget       String?   // 'low' | 'medium' | 'high' | 'enterprise'
-  timeline     String?   // 'immediate' | '1-3months' | '3-6months' | 'exploring'
+  budget       String? // 'low' | 'medium' | 'high' | 'enterprise'
+  timeline     String? // 'immediate' | '1-3months' | '3-6months' | 'exploring'
   interests    String[]
   notes        String?
   qualified_at DateTime?
   created_at   DateTime  @default(now())
   updated_at   DateTime  @updatedAt
 
-  conversations Conversation[]
-  appointments  Appointment[]
+  conversations   Conversation[]
+  appointments    Appointment[]
+  leadEnrichments LeadEnrichment[]
+  intentSignals   IntentSignal[]
+  emailsSent      EmailSent[]
 
   @@map("leads")
 }
 
+// ============================================
+// LEAD ENRICHMENT MODELS
+// ============================================
+
+model LeadEnrichment {
+  id                   String   @id @default(uuid())
+  lead_id              String
+  source               String // 'people_data_labs' | 'forager' | 'crustdata'
+  enrichment_data      Json
+  confidence_score     Float?
+  company_name         String?
+  company_size         String?
+  company_industry     String?
+  company_website      String?
+  company_linkedin_url String?
+  company_funding      String?
+  job_title            String?
+  linkedin_url         String?
+  twitter_url          String?
+  github_url           String?
+  tech_stack           String[]
+  skills               String[]
+  social_profiles      Json?
+  enriched_at          DateTime
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+
+  @@index([lead_id])
+  @@index([source])
+  @@index([enriched_at])
+  @@map("lead_enrichments")
+}
+
+model EnrichmentSource {
+  id                    String    @id @default(uuid())
+  name                  String // 'people_data_labs' | 'forager' | 'crustdata'
+  api_key_configured    Boolean   @default(false)
+  is_active             Boolean   @default(false)
+  priority              Int // for fallback ordering
+  rate_limit_per_minute Int?
+  cost_per_request      Float?
+  last_used_at          DateTime?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@unique([name])
+  @@map("enrichment_sources")
+}
+
+model IntentSignal {
+  id           String   @id @default(uuid())
+  lead_id      String
+  signal_type  String // 'website_visit' | 'email_open' | 'email_click' | 'form_submit' | 'chat_message' | 'social_interaction'
+  signal_data  Json
+  score_impact Int // positive or negative
+  created_at   DateTime @default(now())
+
+  lead Lead @relation(fields: [lead_id], references: [id])
+
+  @@index([lead_id])
+  @@index([signal_type])
+  @@index([created_at])
+  @@map("intent_signals")
+}
+
+// ============================================
+// EMAIL CAMPAIGN MODELS
+// ============================================
+
+model EmailCampaign {
+  id               String    @id @default(uuid())
+  name             String
+  description      String?
+  status           String    @default("draft") // 'draft' | 'active' | 'paused' | 'completed'
+  target_audience  Json? // filter criteria
+  created_by       String? // future user reference
+  total_recipients Int       @default(0)
+  emails_sent      Int       @default(0)
+  emails_opened    Int       @default(0)
+  emails_clicked   Int       @default(0)
+  conversion_count Int       @default(0)
+  started_at       DateTime?
+  completed_at     DateTime?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  sequences  EmailSequenceStep[]
+  emailsSent EmailSent[]
+
+  @@map("email_campaigns")
+}
+
+model EmailTemplate {
+  id                String   @id @default(uuid())
+  name              String
+  subject           String
+  body              String // supports variables like {{name}}
+  variables         String[] // list of available variables
+  category          String? // 'welcome', 'follow_up', 'nurture'
+  is_ai_generated   Boolean  @default(false)
+  ab_test_variant   String? // 'A', 'B', 'C'
+  performance_score Float?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  sequenceSteps EmailSequenceStep[]
+  emailsSent    EmailSent[]
+
+  @@map("email_templates")
+}
+
+model EmailSequenceStep {
+  id          String   @id @default(uuid())
+  campaign_id String
+  template_id String
+  step_number Int
+  delay_hours Int // hours after previous step
+  condition   Json? // conditional logic
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  campaign EmailCampaign @relation(fields: [campaign_id], references: [id])
+  template EmailTemplate @relation(fields: [template_id], references: [id])
+
+  @@unique([campaign_id, step_number])
+  @@index([campaign_id])
+  @@map("email_sequence_steps")
+}
+
+model EmailSent {
+  id              String    @id @default(uuid())
+  campaign_id     String
+  lead_id         String
+  template_id     String
+  step_number     Int
+  recipient_email String
+  subject         String
+  body            String // rendered with variables
+  status          String    @default("queued") // 'queued' | 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'failed'
+  sent_at         DateTime?
+  opened_at       DateTime?
+  clicked_at      DateTime?
+  click_count     Int       @default(0)
+  tracking_id     String    @unique // for open/click tracking
+  error_message   String?
+  metadata        Json?
+  created_at      DateTime  @default(now())
+
+  campaign EmailCampaign @relation(fields: [campaign_id], references: [id])
+  lead     Lead          @relation(fields: [lead_id], references: [id])
+  template EmailTemplate @relation(fields: [template_id], references: [id])
+
+  @@index([campaign_id])
+  @@index([lead_id])
+  @@index([tracking_id])
+  @@index([status])
+  @@index([sent_at])
+  @@map("emails_sent")
+}
+
+// ============================================
+// WORKFLOW AUTOMATION MODELS
+// ============================================
+
+model Workflow {
+  id                String    @id @default(uuid())
+  name              String
+  description       String?
+  status            String    @default("draft") // 'draft' | 'active' | 'paused' | 'archived'
+  is_template       Boolean   @default(false)
+  template_category String?
+  created_by        String?
+  execution_count   Int       @default(0)
+  success_count     Int       @default(0)
+  failure_count     Int       @default(0)
+  last_executed_at  DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  triggers   WorkflowTrigger[]
+  actions    WorkflowAction[]
+  executions WorkflowExecution[]
+
+  @@map("workflows")
+}
+
+model WorkflowTrigger {
+  id             String   @id @default(uuid())
+  workflow_id    String
+  trigger_type   String // 'lead_created' | 'lead_status_changed' | 'email_opened' | 'email_clicked' | 'form_submitted' | 'appointment_scheduled' | 'time_based' | 'webhook'
+  trigger_config Json // conditions, filters, schedule
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  workflow Workflow @relation(fields: [workflow_id], references: [id])
+
+  @@index([workflow_id])
+  @@index([trigger_type])
+  @@map("workflow_triggers")
+}
+
+model WorkflowAction {
+  id               String   @id @default(uuid())
+  workflow_id      String
+  action_type      String // 'send_email' | 'update_lead' | 'create_task' | 'call_webhook' | 'run_ai_agent' | 'wait' | 'condition'
+  action_config    Json // parameters, settings
+  order            Int // execution order
+  parent_action_id String? // for branching
+  condition        Json? // if/then logic
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  workflow     Workflow         @relation(fields: [workflow_id], references: [id])
+  parentAction WorkflowAction?  @relation("ActionBranching", fields: [parent_action_id], references: [id])
+  childActions WorkflowAction[] @relation("ActionBranching")
+
+  @@index([workflow_id])
+  @@index([order])
+  @@map("workflow_actions")
+}
+
+model WorkflowExecution {
+  id            String    @id @default(uuid())
+  workflow_id   String
+  trigger_type  String
+  trigger_data  Json
+  status        String    @default("running") // 'running' | 'completed' | 'failed' | 'cancelled'
+  started_at    DateTime  @default(now())
+  completed_at  DateTime?
+  error_message String?
+  created_at    DateTime  @default(now())
+
+  workflow Workflow               @relation(fields: [workflow_id], references: [id])
+  logs     WorkflowExecutionLog[]
+
+  @@index([workflow_id])
+  @@index([status])
+  @@index([started_at])
+  @@map("workflow_executions")
+}
+
+model WorkflowExecutionLog {
+  id            String   @id @default(uuid())
+  execution_id  String
+  action_id     String?
+  action_type   String
+  status        String   @default("pending") // 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+  input_data    Json?
+  output_data   Json?
+  error_message String?
+  duration_ms   Int?
+  created_at    DateTime @default(now())
+
+  execution WorkflowExecution @relation(fields: [execution_id], references: [id])
+
+  @@index([execution_id])
+  @@index([created_at])
+  @@map("workflow_execution_logs")
+}
+
+// ============================================
+// MULTI-CHANNEL SUPPORT
+// ============================================
+
+model ChannelConfig {
+  id                    String   @id @default(uuid())
+  channel_type          String // 'whatsapp' | 'sms' | 'messenger' | 'instagram' | 'email'
+  is_active             Boolean  @default(false)
+  provider              String // 'twilio', 'facebook', 'sendgrid'
+  api_credentials       Json // encrypted credentials
+  webhook_url           String?
+  phone_number          String? // for SMS/WhatsApp
+  page_id               String? // for Messenger
+  rate_limit_per_minute Int?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  @@unique([channel_type])
+  @@map("channel_configs")
+}
+
 model Conversation {
-  id         String    @id @default(uuid())
-  lead_id    String?
-  status     String    @default("active") // 'active' | 'closed' | 'transferred'
-  channel    String    @default("chat")   // 'chat' | 'email' | 'phone'
-  started_at DateTime  @default(now())
-  ended_at   DateTime?
-  summary    String?
-  sentiment  String?   // 'positive' | 'neutral' | 'negative'
-  created_at DateTime  @default(now())
+  id               String    @id @default(uuid())
+  lead_id          String?
+  status           String    @default("active") // 'active' | 'closed' | 'transferred'
+  channel          String    @default("chat") // 'chat' | 'email' | 'phone' | 'whatsapp' | 'sms' | 'messenger' | 'instagram'
+  started_at       DateTime  @default(now())
+  ended_at         DateTime?
+  summary          String?
+  sentiment        String? // 'positive' | 'neutral' | 'negative'
+  created_at       DateTime  @default(now())
+  whatsapp_id      String? // WhatsApp conversation ID
+  sms_id           String? // Twilio SMS conversation ID
+  messenger_id     String? // Facebook Messenger conversation ID
+  instagram_id     String? // Instagram DM conversation ID
+  channel_metadata Json? // Channel-specific data
 
   lead     Lead?     @relation(fields: [lead_id], references: [id])
   messages Message[]
 
+  @@index([whatsapp_id])
+  @@index([sms_id])
+  @@index([messenger_id])
   @@map("conversations")
 }
 
 model Message {
   id              String   @id @default(uuid())
   conversation_id String
-  role            String   // 'user' | 'assistant' | 'system'
+  role            String // 'user' | 'assistant' | 'system'
   content         String
   metadata        Json?
   created_at      DateTime @default(now())
@@ -159,13 +453,12 @@ model AIModelConfig {
 }
 
 model AIProviderCost {
-  id                       String   @id @default(uuid())
-  provider                 String
-  model                    String
-  input_cost_per_1k_tokens Float
+  id                        String   @id @default(uuid())
+  provider                  String
+  model                     String
+  input_cost_per_1k_tokens  Float
   output_cost_per_1k_tokens Float
-  updated_at               DateTime @updatedAt
+  updated_at                DateTime @updatedAt
 
   @@map("ai_provider_costs")
 }
-
