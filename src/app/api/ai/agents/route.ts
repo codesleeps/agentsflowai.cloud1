@@ -69,7 +69,17 @@ export async function POST(request: NextRequest) {
 
     // Validate input using Zod schema
     const validatedData = validateAndSanitize(AIAgentRequestSchema, body);
-    const { agentId, message, conversationHistory = [] } = validatedData;
+    const { agentId, message } = validatedData;
+    let { conversationHistory = [] } = validatedData;
+
+    // Map conversation history to strictly typed AIMessage[]
+    conversationHistory = conversationHistory.map((msg: any, index: number) => ({
+      role: msg.role,
+      content: msg.content,
+      id: msg.id || `hist-${Date.now()}-${index}`,
+      agentId: msg.agentId || agentId,
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+    }));
 
     // Helper to find URLs in message
     const urlRegex = /(https?:\/\/[^\s]+)/g;
