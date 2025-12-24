@@ -239,73 +239,74 @@ export default function WelcomePage() {
               <ThemeToggle />
 
               {/* Desktop Navigation */}
-            <div className="hidden items-center gap-8 md:flex">
-              <a
-                href="#features"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                How It Works
-              </a>
-              <a
-                href="#pricing"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Pricing
-              </a>
-              <a
-                href="#testimonials"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Testimonials
-              </a>
-              <a
-                href="#contact"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Contact
-              </a>
-            </div>
+              <div className="hidden items-center gap-8 md:flex">
+                <a
+                  href="#features"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  Features
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  How It Works
+                </a>
+                <a
+                  href="#pricing"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="#testimonials"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  Testimonials
+                </a>
+                <a
+                  href="#contact"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                >
+                  Contact
+                </a>
+              </div>
 
-            <div className="hidden items-center gap-4 md:flex">
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  document
-                    .getElementById("login")
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
-              >
-                Login
-              </Button>
-              <Button
-                onClick={() =>
-                  document
-                    .getElementById("signup")
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
-              >
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+              <div className="hidden items-center gap-4 md:flex">
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    document
+                      .getElementById("login")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  Login
+                </Button>
+                <Button
+                  onClick={() =>
+                    document
+                      .getElementById("signup")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
 
-            {/* Mobile menu button */}
-            <button
-              className="p-2 md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
+              {/* Mobile menu button */}
+              <button
+                className="p-2 md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

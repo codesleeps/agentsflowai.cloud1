@@ -7,7 +7,7 @@ set -e
 # Configuration
 SERVER="root@srv1187860.hstgr.cloud"
 REMOTE_DIR="/var/www/agentsflow-ai"
-LOCAL_DIR="/Users/test/Desktop/agentsflowai.cloud/"
+LOCAL_DIR="$(pwd)/"
 SSH_KEY="~/.ssh/deploy_key"
 
 echo "🚀 Starting deployment to $SERVER..."
