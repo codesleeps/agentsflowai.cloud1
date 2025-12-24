@@ -1,7 +1,6 @@
-
 // AI Agent Types for AgentsFlowAI
 
-export type AIProvider = 'ollama' | 'google' | 'anthropic' | 'openai';
+export type AIProvider = "ollama" | "google" | "anthropic" | "openai";
 
 export interface ModelFallbackConfig {
   provider: AIProvider;
@@ -20,20 +19,24 @@ export interface AIAgent {
   capabilities: string[];
   model: string;
   provider?: AIProvider;
-  supportedProviders: Array<{ provider: string, model: string, priority: number }>;
+  supportedProviders: Array<{
+    provider: string;
+    model: string;
+    priority: number;
+  }>;
   defaultProvider: string;
-  costTier: 'free' | 'low' | 'medium' | 'high';
+  costTier: "free" | "low" | "medium" | "high";
   isActive: boolean;
 }
 
 export type AIAgentCategory =
-  | 'web-development'
-  | 'analytics'
-  | 'content-creation'
-  | 'marketing'
-  | 'social-media'
-  | 'seo'
-  | 'fast-chat';
+  | "web-development"
+  | "analytics"
+  | "content-creation"
+  | "marketing"
+  | "social-media"
+  | "seo"
+  | "fast-chat";
 
 // ... (keep intermediate interfaces as they are, but since I'm only replacing AIAgent definition and AI_AGENTS list, I need to include them in the chunk or use logic. Wait, replace_file_content requires a single contiguous block.
 // I will rewrite the AIAgent interface and then use a separate call or a very large block to update AI_AGENTS if they are far apart.
@@ -42,11 +45,10 @@ export type AIAgentCategory =
 // WAIT, I only have replace_file_content or multi_replace.
 // I will use multi_replace.
 
-
 export interface AIAgentMessage {
   id: string;
   agentId: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
   metadata?: {
@@ -104,10 +106,16 @@ export interface OllamaModel {
 }
 
 export interface ContentGenerationRequest {
-  type: 'blog-post' | 'social-post' | 'ad-copy' | 'email' | 'seo-content' | 'code';
+  type:
+    | "blog-post"
+    | "social-post"
+    | "ad-copy"
+    | "email"
+    | "seo-content"
+    | "code";
   topic: string;
   tone?: string;
-  length?: 'short' | 'medium' | 'long';
+  length?: "short" | "medium" | "long";
   keywords?: string[];
   targetAudience?: string;
   additionalContext?: string;
@@ -137,7 +145,7 @@ export interface SEOAnalysisResult {
 }
 
 export interface SocialMediaPost {
-  platform: 'twitter' | 'linkedin' | 'instagram' | 'facebook';
+  platform: "twitter" | "linkedin" | "instagram" | "facebook";
   content: string;
   hashtags: string[];
   scheduledAt?: Date;
@@ -158,38 +166,42 @@ export interface MarketingCampaign {
 export interface AnalyticsInsight {
   title: string;
   description: string;
-  type: 'trend' | 'anomaly' | 'opportunity' | 'recommendation';
+  type: "trend" | "anomaly" | "opportunity" | "recommendation";
   confidence: number;
   data?: Record<string, unknown>;
   actionItems: string[];
 }
 
-
 // Agent configurations
 export const AI_AGENTS: AIAgent[] = [
   {
-    id: 'web-dev-agent',
-    name: 'Web Development Agent',
-    description: 'Expert in web development, code generation, debugging, and optimization',
-    icon: '💻',
-    category: 'web-development',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "web-dev-agent",
+    name: "Web Development Agent",
+    description:
+      "Expert in web development, code generation, debugging, and optimization",
+    icon: "💻",
+    category: "web-development",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Generate React/Next.js components',
-      'Debug JavaScript/TypeScript code',
-      'Optimize performance',
-      'Create API endpoints',
-      'Write unit tests',
-      'Explain code concepts',
+      "Generate React/Next.js components",
+      "Debug JavaScript/TypeScript code",
+      "Optimize performance",
+      "Create API endpoints",
+      "Write unit tests",
+      "Explain code concepts",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, TypeScript, Node.js, and Tailwind CSS. You help users:
 - Generate clean, maintainable code
@@ -201,28 +213,33 @@ export const AI_AGENTS: AIAgent[] = [
 Always provide code examples when relevant. Use TypeScript for type safety. Follow modern React patterns with hooks and functional components.`,
   },
   {
-    id: 'analytics-agent',
-    name: 'Analytics Agent',
-    description: 'Data analysis, insights generation, and business intelligence',
-    icon: '📊',
-    category: 'analytics',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "analytics-agent",
+    name: "Analytics Agent",
+    description:
+      "Data analysis, insights generation, and business intelligence",
+    icon: "📊",
+    category: "analytics",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Analyze business metrics',
-      'Identify trends and patterns',
-      'Generate data insights',
-      'Create forecasts',
-      'Suggest optimizations',
-      'Explain complex data',
+      "Analyze business metrics",
+      "Identify trends and patterns",
+      "Generate data insights",
+      "Create forecasts",
+      "Suggest optimizations",
+      "Explain complex data",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are a data analytics expert specializing in business intelligence and data-driven decision making. You help users:
 - Analyze business metrics and KPIs
@@ -235,28 +252,32 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
 Always provide specific, actionable recommendations. Use data to support your insights. Consider both short-term and long-term implications.`,
   },
   {
-    id: 'content-agent',
-    name: 'Content Creation Agent',
-    description: 'Blog posts, articles, copy, and all types of written content',
-    icon: '✍️',
-    category: 'content-creation',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "content-agent",
+    name: "Content Creation Agent",
+    description: "Blog posts, articles, copy, and all types of written content",
+    icon: "✍️",
+    category: "content-creation",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Write blog posts and articles',
-      'Create marketing copy',
-      'Generate email content',
-      'Craft product descriptions',
-      'Edit and improve content',
-      'Adapt tone and style',
+      "Write blog posts and articles",
+      "Create marketing copy",
+      "Generate email content",
+      "Craft product descriptions",
+      "Edit and improve content",
+      "Adapt tone and style",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are an expert content creator and copywriter with years of experience in digital marketing. You help users:
 - Write engaging blog posts and articles
@@ -269,28 +290,33 @@ Always provide specific, actionable recommendations. Use data to support your in
 Always focus on clarity, engagement, and conversion. Use storytelling techniques. Optimize for readability while maintaining SEO best practices.`,
   },
   {
-    id: 'marketing-agent',
-    name: 'Marketing Agent',
-    description: 'Campaign strategies, ad copy, funnels, and marketing automation',
-    icon: '📣',
-    category: 'marketing',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "marketing-agent",
+    name: "Marketing Agent",
+    description:
+      "Campaign strategies, ad copy, funnels, and marketing automation",
+    icon: "📣",
+    category: "marketing",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Create marketing strategies',
-      'Design sales funnels',
-      'Write ad copy',
-      'Plan campaigns',
-      'Analyze competitors',
-      'Suggest optimizations',
+      "Create marketing strategies",
+      "Design sales funnels",
+      "Write ad copy",
+      "Plan campaigns",
+      "Analyze competitors",
+      "Suggest optimizations",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are a marketing strategist with expertise in digital marketing, growth hacking, and conversion optimization. You help users:
 - Create comprehensive marketing strategies
@@ -303,28 +329,32 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
 Always focus on measurable results and ROI. Consider the customer journey. Use proven marketing frameworks and adapt them to specific needs.`,
   },
   {
-    id: 'social-media-agent',
-    name: 'Social Media Agent',
-    description: 'Social media content, scheduling, engagement strategies',
-    icon: '📱',
-    category: 'social-media',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "social-media-agent",
+    name: "Social Media Agent",
+    description: "Social media content, scheduling, engagement strategies",
+    icon: "📱",
+    category: "social-media",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Create social media posts',
-      'Generate hashtag strategies',
-      'Plan content calendars',
-      'Write captions',
-      'Suggest engagement tactics',
-      'Analyze trends',
+      "Create social media posts",
+      "Generate hashtag strategies",
+      "Plan content calendars",
+      "Write captions",
+      "Suggest engagement tactics",
+      "Analyze trends",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are a social media expert with deep knowledge of all major platforms including Twitter/X, LinkedIn, Instagram, Facebook, and TikTok. You help users:
 - Create engaging social media posts
@@ -337,28 +367,33 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
 Always consider platform-specific best practices. Focus on engagement and community building. Use current trends and formats.`,
   },
   {
-    id: 'seo-agent',
-    name: 'SEO Agent',
-    description: 'Search engine optimization, keywords, meta tags, and rankings',
-    icon: '🔍',
-    category: 'seo',
-    model: 'claude-3-5-sonnet-20241022',
-    provider: 'anthropic',
-    defaultProvider: 'anthropic',
-    costTier: 'medium',
+    id: "seo-agent",
+    name: "SEO Agent",
+    description:
+      "Search engine optimization, keywords, meta tags, and rankings",
+    icon: "🔍",
+    category: "seo",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    defaultProvider: "anthropic",
+    costTier: "medium",
     isActive: true,
     capabilities: [
-      'Keyword research',
-      'On-page SEO optimization',
-      'Meta tag generation',
-      'Content optimization',
-      'Technical SEO advice',
-      'Competitor analysis',
+      "Keyword research",
+      "On-page SEO optimization",
+      "Meta tag generation",
+      "Content optimization",
+      "Technical SEO advice",
+      "Competitor analysis",
     ],
     supportedProviders: [
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 1,
+      },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are an SEO expert with comprehensive knowledge of search engine algorithms, keyword research, and content optimization. You help users:
 - Conduct keyword research
@@ -371,26 +406,27 @@ Always consider platform-specific best practices. Focus on engagement and commun
 Always follow current SEO best practices. Focus on user intent and search quality. Provide specific, actionable recommendations with expected impact.`,
   },
   {
-    id: 'fast-chat-agent',
-    name: 'Fast Chat Agent',
-    description: 'High-speed responses using local Ollama for quick answers and chat',
-    icon: '⚡',
-    category: 'fast-chat',
-    model: 'mistral',
-    provider: 'ollama',
-    defaultProvider: 'ollama',
-    costTier: 'free',
+    id: "fast-chat-agent",
+    name: "Fast Chat Agent",
+    description:
+      "High-speed responses using local Ollama for quick answers and chat",
+    icon: "⚡",
+    category: "fast-chat",
+    model: "mistral",
+    provider: "ollama",
+    defaultProvider: "ollama",
+    costTier: "free",
     isActive: true,
     capabilities: [
-      'Rapid responses',
-      'General knowledge',
-      'Brainstorming',
-      'Quick summaries',
-      'Chat and conversation',
+      "Rapid responses",
+      "General knowledge",
+      "Brainstorming",
+      "Quick summaries",
+      "Chat and conversation",
     ],
     supportedProviders: [
-      { provider: 'ollama', model: 'mistral', priority: 1 },
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 2 }
+      { provider: "ollama", model: "mistral", priority: 1 },
+      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
     ],
     systemPrompt: `You are a helpful, fast, and efficient AI assistant powered by Ollama's Mistral model.
 - Keep answers concise and to the point.
@@ -399,27 +435,32 @@ Always follow current SEO best practices. Focus on user intent and search qualit
 - If you don't know something, admit it quickly.`,
   },
   {
-    id: 'gemini-agent',
-    name: 'Gemini Cloud Agent',
-    description: 'Powered by Google Gemini Flash for advanced reasoning and speed',
-    icon: '✨',
-    category: 'fast-chat',
-    model: 'gemini-2.0-flash',
-    provider: 'google',
-    defaultProvider: 'google',
-    costTier: 'low',
+    id: "gemini-agent",
+    name: "Gemini Cloud Agent",
+    description:
+      "Powered by Google Gemini Flash for advanced reasoning and speed",
+    icon: "✨",
+    category: "fast-chat",
+    model: "gemini-2.0-flash",
+    provider: "google",
+    defaultProvider: "google",
+    costTier: "low",
     isActive: true,
     capabilities: [
-      'Advanced reasoning',
-      'Code generation',
-      'Large context analysis',
-      'Creative writing',
-      'Multimodal understanding',
+      "Advanced reasoning",
+      "Code generation",
+      "Large context analysis",
+      "Creative writing",
+      "Multimodal understanding",
     ],
     supportedProviders: [
-      { provider: 'google', model: 'gemini-2.0-flash', priority: 1 },
-      { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', priority: 2 },
-      { provider: 'ollama', model: 'mistral', priority: 3 }
+      { provider: "google", model: "gemini-2.0-flash", priority: 1 },
+      {
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        priority: 2,
+      },
+      { provider: "ollama", model: "mistral", priority: 3 },
     ],
     systemPrompt: `You are an advanced AI assistant powered by Google's Gemini Flash model.
 - Leverage your advanced reasoning capabilities for complex problems.
@@ -428,3 +469,12 @@ Always follow current SEO best practices. Focus on user intent and search qualit
 - Be helpful, harmless, and honest.`,
   },
 ];
+
+// Create a map of agent configurations for easy access
+export const AI_AGENT_CONFIGS = AI_AGENTS.reduce(
+  (acc, agent) => {
+    acc[agent.id] = agent;
+    return acc;
+  },
+  {} as Record<string, AIAgent>,
+);

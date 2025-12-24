@@ -1,5 +1,4 @@
-
-import { prisma as db } from '@/server-lib/prisma';
+import { prisma as db } from "@/server-lib/prisma";
 import { AIProviderCost } from "@prisma/client";
 
 interface LogUsageParams {
@@ -11,7 +10,7 @@ interface LogUsageParams {
   completion_tokens: number;
   cost_usd: number;
   latency_ms: number;
-  status: 'success' | 'failed' | 'fallback';
+  status: "success" | "failed" | "fallback";
   error_message?: string;
 }
 
@@ -25,14 +24,13 @@ async function getProviderCosts(): Promise<AIProviderCost[]> {
   return providerCosts;
 }
 
-
 export async function logModelUsage(params: LogUsageParams) {
   try {
     const cost = await calculateCost(
       params.provider,
       params.model,
       params.prompt_tokens,
-      params.completion_tokens
+      params.completion_tokens,
     );
 
     const { user_id, ...rest } = params;
@@ -44,10 +42,10 @@ export async function logModelUsage(params: LogUsageParams) {
         user: { connect: { id: user_id } },
         total_tokens,
         cost_usd: cost,
-      }
+      },
     });
   } catch (error) {
-    console.error('Failed to log model usage:', error);
+    console.error("Failed to log model usage:", error);
   }
 }
 
@@ -55,26 +53,32 @@ export async function calculateCost(
   provider: string,
   model: string,
   inputTokens: number,
-  outputTokens: number
+  outputTokens: number,
 ): Promise<number> {
   const costs = await getProviderCosts();
-  const modelCost = costs.find(c => c.provider === provider && c.model === model);
+  const modelCost = costs.find(
+    (c) => c.provider === provider && c.model === model,
+  );
 
   if (!modelCost) {
     return 0;
   }
 
   const inputCost = (inputTokens / 1000) * modelCost.input_cost_per_1k_tokens;
-  const outputCost = (outputTokens / 1000) * modelCost.output_cost_per_1k_tokens;
+  const outputCost =
+    (outputTokens / 1000) * modelCost.output_cost_per_1k_tokens;
 
   return inputCost + outputCost;
 }
 
-export async function getUserUsageStats(userId: string, dateRange: { -readonly [key in string]: string }) {
+export async function getUserUsageStats(
+  userId: string,
+  dateRange: { -readonly [key in string]: string },
+) {
   const { startDate, endDate } = dateRange;
 
   return db.aIModelUsage.groupBy({
-    by: ['provider', 'agent_id'],
+    by: ["provider", "agent_id"],
     where: {
       user_id: userId,
       created_at: {
@@ -94,7 +98,7 @@ export async function getUserUsageStats(userId: string, dateRange: { -readonly [
 
 export async function getAgentPerformanceMetrics(agentId: string) {
   return db.aIModelUsage.groupBy({
-    by: ['provider', 'model'],
+    by: ["provider", "model"],
     where: {
       agent_id: agentId,
     },
@@ -106,4 +110,31 @@ export async function getAgentPerformanceMetrics(agentId: string) {
       status: true,
     },
   });
+}
+
+export async function logIntegrationError(
+  userId: string,
+  endpoint: string,
+  error: Error,
+  prompt: string,
+) {
+  try {
+    await db.aIModelUsage.create({
+      data: {
+        user: { connect: { id: userId } },
+        agent_id: "integration-endpoint",
+        provider: "integration",
+        model: endpoint,
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        cost_usd: 0,
+        latency_ms: 0,
+        status: "failed",
+        error_message: error.message,
+        total_tokens: 0,
+      },
+    });
+  } catch (logError) {
+    console.error("Failed to log integration error:", logError);
+  }
 }

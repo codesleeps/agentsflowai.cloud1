@@ -385,3 +385,15 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: any): T {
 
   return validated;
 }
+
+// New schema for AI text generation
+export const GenerateTextRequestSchema = z.object({
+  prompt: z
+    .string()
+    .min(1, "Prompt is required")
+    .max(10000, "Prompt must be less than 10,000 characters"),
+  enableWebSearch: z.boolean().optional().default(false),
+  enableDeepResearch: z.boolean().optional().default(false),
+  reasoningEffort: z.enum(["low", "medium", "high"]).optional().default("low"),
+  modelProvider: z.enum(["openai", "google"]).optional().default("openai"),
+});

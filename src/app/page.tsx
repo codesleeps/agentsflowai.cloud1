@@ -7,13 +7,12 @@ import { getAuthClient } from "@/client-lib/auth-client";
 export default function HomePage() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
+  const auth = getAuthClient();
 
   useEffect(() => {
     // Check authentication status
     const checkAuth = async () => {
       try {
-        const auth = getAuthClient();
-
         if (auth.data?.user) {
           // User is authenticated, redirect to dashboard
           router.replace("/dashboard");
@@ -31,7 +30,7 @@ export default function HomePage() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, auth]);
 
   if (isChecking) {
     return (
