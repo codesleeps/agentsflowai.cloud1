@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { twilioService } from "@/server-lib/call-handler/twilio-service";
-import { db } from "@/server-lib/prisma";
+import { prisma } from "@/server-lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,7 +101,7 @@ async function handleAnalyzeInput(request: NextRequest): Promise<NextResponse> {
 
   // Generate TwiML response
   const twiml = new (await import("twilio")).twiml.VoiceResponse();
-  twiml.say(response?.response || "Thank you for calling. Goodbye!");
+  twiml.say(response || "Thank you for calling. Goodbye!");
   twiml.hangup();
 
   return new NextResponse(twiml.toString(), {
@@ -133,11 +133,11 @@ async function handleCallStatus(request: NextRequest): Promise<NextResponse> {
   const callStatus = formData.get("CallStatus") as string;
 
   // Update call session status
-  await db.call_session.update({
+  await prisma.callSession.update({
     where: { id: sessionId },
     data: {
       status: callStatus as any,
-      end_time: callStatus === "completed" ? new Date() : undefined,
+      endTime: callStatus === "completed" ? new Date() : undefined,
     },
   });
 
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const session = await db.call_session.findUnique({
+    const session = await prisma.callSession.findUnique({
       where: { id: sessionId },
       include: {
         transcripts: true,
