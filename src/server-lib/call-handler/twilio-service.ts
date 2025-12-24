@@ -7,8 +7,8 @@ import {
   TwilioSpeechResult,
   CallConfig,
 } from "./types";
-import { db } from "../prisma";
-import { executeWithFallback } from "../ai-fallback-handler";
+import { prisma } from "../prisma";
+import { executeSimpleGeneration } from "../ai-fallback-handler";
 
 class TwilioService {
   private client: Twilio;
@@ -153,29 +153,35 @@ class TwilioService {
   /**
    * Process call input and generate AI response
    */
-  async processCallInput(sessionId: string, userInput: string): Promise<void> {
+  async processCallInput(
+    sessionId: string,
+    userInput: string,
+  ): Promise<string> {
     const session = await this.getCallSession(sessionId);
-    if (!session) return;
+    if (!session) return "";
 
     try {
       // Get conversation history
       const history = await this.getConversationHistory(sessionId);
 
       // Generate AI response using existing OpenRouter integration
-      const response = await executeWithFallback({
-        agentId: "web-dev-agent", // Use web-dev-agent as base, could be configurable
-        message: userInput,
-        conversationHistory: history,
+      const response = await executeSimpleGeneration({
+        prompt: userInput,
+        enableWebSearch: false,
+        enableDeepResearch: false,
+        reasoningEffort: "medium",
+        modelProvider: "anthropic",
+        userId: "system", // Use system user for call handling
       });
 
       // Save AI response
       const aiResponse: CallResponse = {
         id: `response_${Date.now()}`,
         sessionId,
-        content: response.response,
+        content: response.text,
         timestamp: new Date(),
-        modelUsed: response.model,
-        responseTime: response.generationTime,
+        modelUsed: response.provider,
+        responseTime: 0, // Not available from simple generation
       };
 
       await this.saveResponse(aiResponse);
@@ -186,10 +192,11 @@ class TwilioService {
       });
 
       // Send response back to Twilio (this would be handled by the API endpoint)
-      return response.response;
+      return response.text;
     } catch (error) {
       console.error("Error processing call input:", error);
       await this.handleCallError(sessionId, error as Error);
+      return "I'm sorry, I'm having trouble processing your request right now. Please try again later.";
     }
   }
 
@@ -230,7 +237,7 @@ class TwilioService {
       aiResponses: [],
     };
 
-    await db.callSession.create({
+    await prisma.callSession.create({
       data: {
         id: session.id,
         phoneNumber: session.phoneNumber,
@@ -247,18 +254,18 @@ class TwilioService {
    * Get call session from database
    */
   private async getCallSession(sessionId: string): Promise<CallSession | null> {
-    const sessionData = await db.callSession.findUnique({
+    const sessionData = await prisma.callSession.findUnique({
       where: { id: sessionId },
     });
 
     if (!sessionData) return null;
 
-    const transcripts = await db.callTranscript.findMany({
+    const transcripts = await prisma.callTranscript.findMany({
       where: { sessionId },
       orderBy: { timestamp: "asc" },
     });
 
-    const responses = await db.callResponse.findMany({
+    const responses = await prisma.callResponse.findMany({
       where: { sessionId },
       orderBy: { timestamp: "asc" },
     });
@@ -274,7 +281,7 @@ class TwilioService {
    * Save transcript to database
    */
   private async saveTranscript(transcript: CallTranscript): Promise<void> {
-    await db.callTranscript.create({
+    await prisma.callTranscript.create({
       data: {
         id: transcript.id,
         sessionId: transcript.sessionId,
@@ -291,7 +298,7 @@ class TwilioService {
    * Save AI response to database
    */
   private async saveResponse(response: CallResponse): Promise<void> {
-    await db.callResponse.create({
+    await prisma.callResponse.create({
       data: {
         id: response.id,
         sessionId: response.sessionId,
@@ -309,12 +316,12 @@ class TwilioService {
   private async getConversationHistory(
     sessionId: string,
   ): Promise<Array<{ role: string; content: string }>> {
-    const transcripts = await db.callTranscript.findMany({
+    const transcripts = await prisma.callTranscript.findMany({
       where: { sessionId },
       orderBy: { timestamp: "asc" },
     });
 
-    const responses = await db.callResponse.findMany({
+    const responses = await prisma.callResponse.findMany({
       where: { sessionId },
       orderBy: { timestamp: "asc" },
     });
@@ -343,7 +350,7 @@ class TwilioService {
     sessionId: string,
     updates: Partial<CallSession>,
   ): Promise<void> {
-    await db.callSession.update({
+    await prisma.callSession.update({
       where: { id: sessionId },
       data: updates,
     });
@@ -392,7 +399,7 @@ class TwilioService {
   private async createLeadFromVoicemail(leadData: any): Promise<void> {
     // This would integrate with your existing lead creation API
     // For now, we'll create a basic lead record
-    await db.lead.create({
+    await prisma.lead.create({
       data: {
         name: leadData.name,
         phone: leadData.phone,

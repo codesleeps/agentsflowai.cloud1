@@ -101,7 +101,7 @@ async function handleAnalyzeInput(request: NextRequest): Promise<NextResponse> {
 
   // Generate TwiML response
   const twiml = new (await import("twilio")).twiml.VoiceResponse();
-  twiml.say(response || "Thank you for calling. Goodbye!");
+  twiml.say(response?.response || "Thank you for calling. Goodbye!");
   twiml.hangup();
 
   return new NextResponse(twiml.toString(), {
@@ -133,11 +133,11 @@ async function handleCallStatus(request: NextRequest): Promise<NextResponse> {
   const callStatus = formData.get("CallStatus") as string;
 
   // Update call session status
-  await db.callSession.update({
+  await db.call_session.update({
     where: { id: sessionId },
     data: {
       status: callStatus as any,
-      endTime: callStatus === "completed" ? new Date() : undefined,
+      end_time: callStatus === "completed" ? new Date() : undefined,
     },
   });
 
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const session = await db.callSession.findUnique({
+    const session = await db.call_session.findUnique({
       where: { id: sessionId },
       include: {
         transcripts: true,

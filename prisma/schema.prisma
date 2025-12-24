@@ -34,27 +34,28 @@ model Service {
 }
 
 model Lead {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
   email        String
   company      String?
   phone        String?
-  status       String    @default("new") // 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost'
-  score        Int       @default(0)
-  source       String    @default("website") // 'website' | 'chat' | 'referral' | 'ads'
+  status       String        @default("new") // 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost'
+  score        Int           @default(0)
+  source       String        @default("website") // 'website' | 'chat' | 'referral' | 'ads'
   budget       String? // 'low' | 'medium' | 'high' | 'enterprise'
   timeline     String? // 'immediate' | '1-3months' | '3-6months' | 'exploring'
   interests    String[]
   notes        String?
   qualified_at DateTime?
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
 
   conversations   Conversation[]
   appointments    Appointment[]
   leadEnrichments LeadEnrichment[]
   intentSignals   IntentSignal[]
   emailsSent      EmailSent[]
+  callSessions    CallSession[]
 
   @@map("leads")
 }
