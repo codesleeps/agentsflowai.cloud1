@@ -1,4 +1,5 @@
-import { Twilio } from "twilio";
+import Twilio from "twilio";
+import type { Twilio as TwilioClient } from "twilio";
 import {
   CallSession,
   CallTranscript,
@@ -11,7 +12,7 @@ import { prisma } from "../prisma";
 import { executeSimpleGeneration } from "../ai-fallback-handler";
 
 class TwilioService {
-  private client: Twilio;
+  private client: TwilioClient;
   private config: CallConfig;
 
   constructor() {
@@ -58,7 +59,7 @@ class TwilioService {
    * Generate TwiML response for incoming calls
    */
   async handleIncomingCall(webhook: TwilioCallWebhook): Promise<string> {
-    const twiml = new Twilio.twiml.VoiceResponse();
+    const twiml = new (Twilio as any).twiml.VoiceResponse();
 
     // Check business hours
     if (!this.isBusinessHours()) {
