@@ -462,3 +462,66 @@ model AIProviderCost {
 
   @@map("ai_provider_costs")
 }
+
+// ============================================
+// AI CALL HANDLER MODELS
+// ============================================
+
+model CallSession {
+  id          String   @id @default(uuid())
+  phoneNumber String
+  callerId    String
+  startTime   DateTime @default(now())
+  endTime     DateTime?
+  status      String   // "ringing" | "in_progress" | "completed" | "failed" | "voicemail"
+  sentiment   String?  // "positive" | "neutral" | "negative"
+  intent      String?
+  confidence  Float?
+  leadId      String?
+  agentId     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  transcripts CallTranscript[]
+  responses   CallResponse[]
+  lead        Lead? @relation(fields: [leadId], references: [id])
+
+  @@index([phoneNumber])
+  @@index([callerId])
+  @@index([status])
+  @@index([startTime])
+  @@map("call_sessions")
+}
+
+model CallTranscript {
+  id          String   @id @default(uuid())
+  sessionId   String
+  speaker     String   // "caller" | "ai"
+  content     String
+  timestamp   DateTime
+  confidence  Float
+  duration    Int?
+  created_at  DateTime @default(now())
+
+  session CallSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("call_transcripts")
+}
+
+model CallResponse {
+  id           String   @id @default(uuid())
+  sessionId    String
+  content      String
+  timestamp    DateTime
+  modelUsed    String?
+  responseTime Int?
+  created_at   DateTime @default(now())
+
+  session CallSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("call_responses")
+}
