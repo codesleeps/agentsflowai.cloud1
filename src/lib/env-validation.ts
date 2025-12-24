@@ -2,11 +2,9 @@ import { z } from "zod";
 
 const serverEnvSchema = z.object({
   // Database
-  DATABASE_URL: z
-    .string()
-    .refine((url) => url.startsWith("postgresql://"), {
-      message: "DATABASE_URL must be a PostgreSQL connection string",
-    }),
+  DATABASE_URL: z.string().refine((url) => url.startsWith("postgresql://"), {
+    message: "DATABASE_URL must be a PostgreSQL connection string",
+  }),
 
   // AI Services
   OLLAMA_BASE_URL: z.string().url("OLLAMA_BASE_URL must be a valid URL"),
@@ -74,9 +72,14 @@ export function validateEnv(): Env {
 
       // Safety check: prevent dev variables in production
       if (validatedEnv.NODE_ENV === "production") {
-        if (validatedEnv.NEXT_PUBLIC_DEV_USER_NAME) {
+        // Check for any NEXT_PUBLIC_DEV_USER_* variables
+        const devUserVars = Object.keys(process.env).filter((key) =>
+          key.startsWith("NEXT_PUBLIC_DEV_USER_"),
+        );
+
+        if (devUserVars.length > 0) {
           throw new Error(
-            "NEXT_PUBLIC_DEV_USER_NAME should not be set in production",
+            `Development user variables should not be set in production: ${devUserVars.join(", ")}`,
           );
         }
       }
