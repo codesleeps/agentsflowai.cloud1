@@ -9,6 +9,9 @@ const serverEnvSchema = z.object({
   // AI Services
   OLLAMA_BASE_URL: z.string().url("OLLAMA_BASE_URL must be a valid URL"),
   GOOGLE_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENROUTER_API_KEY: z.string().optional(),
 
   // Application
   SESSION_SECRET: z

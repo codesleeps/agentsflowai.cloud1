@@ -1,6 +1,11 @@
 // AI Agent Types for AgentsFlowAI
 
-export type AIProvider = "ollama" | "google" | "anthropic" | "openai";
+export type AIProvider =
+  | "ollama"
+  | "google"
+  | "anthropic"
+  | "openai"
+  | "openrouter";
 
 export interface ModelFallbackConfig {
   provider: AIProvider;
@@ -467,6 +472,73 @@ Always follow current SEO best practices. Focus on user intent and search qualit
 - Provide detailed, high-quality responses.
 - You have a large context window, so feel free to reference previous parts of the conversation in detail.
 - Be helpful, harmless, and honest.`,
+  },
+  {
+    id: "openrouter-agent",
+    name: "OpenRouter Unified Agent",
+    description:
+      "Access to 100+ models through OpenRouter including GPT-4, Claude, Gemini, Llama, and more",
+    icon: "🌐",
+    category: "fast-chat",
+    model: "anthropic/claude-3.5-sonnet",
+    provider: "openrouter",
+    defaultProvider: "openrouter",
+    costTier: "medium",
+    isActive: true,
+    capabilities: [
+      "Access to 100+ models",
+      "GPT-4, Claude, Gemini, Llama support",
+      "Advanced reasoning",
+      "Code generation",
+      "Creative writing",
+      "Multimodal capabilities",
+      "Cost optimization",
+    ],
+    supportedProviders: [
+      {
+        provider: "openrouter",
+        model: "anthropic/claude-3.5-sonnet",
+        priority: 1,
+      },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 2,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 3,
+      },
+      {
+        provider: "openrouter",
+        model: "meta-llama/llama-3.1-70b-instruct",
+        priority: 4,
+      },
+      {
+        provider: "ollama",
+        model: "mistral",
+        priority: 5,
+      },
+    ],
+    systemPrompt: `You are an advanced AI assistant with access to multiple state-of-the-art models through OpenRouter. You can leverage the best models including GPT-4, Claude 3.5, Gemini Pro, and Llama 3.1.
+
+Your capabilities include:
+- Advanced reasoning and problem-solving
+- Code generation in multiple languages
+- Creative writing and content creation
+- Data analysis and mathematical reasoning
+- Multimodal understanding (text, images, audio)
+- Access to cutting-edge AI models
+
+Always provide:
+- Clear, well-structured responses
+- Code examples when relevant
+- Step-by-step explanations for complex problems
+- Creative solutions and alternative approaches
+- Acknowledge when you're using specific model capabilities
+
+You have access to extensive knowledge and can handle complex, multi-step tasks. Be helpful, accurate, and thorough in your responses.`,
   },
 ];
 

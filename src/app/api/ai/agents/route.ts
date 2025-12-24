@@ -1,13 +1,15 @@
-
-import { NextRequest, NextResponse } from 'next/server';
-import { AI_AGENTS } from '@/shared/models/ai-agents';
-import { AIAgentRequestSchema, validateAndSanitize } from '@/lib/validation-schemas';
-import { requireAuth } from '@/lib/auth-helpers';
-import { handleApiError } from '@/lib/api-errors';
-import * as cheerio from 'cheerio';
-import axios from 'axios';
-import Anthropic from '@anthropic-ai/sdk';
-import { logModelUsage } from '@/server-lib/ai-usage-tracker';
+import { NextRequest, NextResponse } from "next/server";
+import { AI_AGENTS } from "@/shared/models/ai-agents";
+import {
+  AIAgentRequestSchema,
+  validateAndSanitize,
+} from "@/lib/validation-schemas";
+import { requireAuth } from "@/lib/auth-helpers";
+import { handleApiError } from "@/lib/api-errors";
+import * as cheerio from "cheerio";
+import axios from "axios";
+import Anthropic from "@anthropic-ai/sdk";
+import { logModelUsage } from "@/server-lib/ai-usage-tracker";
 import { AIMessage } from "@/shared/models/types";
 import { AIAgent } from "../../../../shared/models/ai-agents";
 
@@ -17,21 +19,22 @@ async function fetchUrlContent(url: string): Promise<string | null> {
     const response = await axios.get(url, {
       timeout: 10000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; AgentsFlowAI/1.0; +https://agentsflowai.cloud)'
-      }
+        "User-Agent":
+          "Mozilla/5.0 (compatible; AgentsFlowAI/1.0; +https://agentsflowai.cloud)",
+      },
     });
 
     const $ = cheerio.load(response.data);
 
     // Remove scripts, styles, and other non-content elements
-    $('script').remove();
-    $('style').remove();
-    $('nav').remove();
-    $('footer').remove();
-    $('header').remove();
+    $("script").remove();
+    $("style").remove();
+    $("nav").remove();
+    $("footer").remove();
+    $("header").remove();
 
     // extract text
-    const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 15000); // Limit to ~15k chars
+    const text = $("body").text().replace(/\s+/g, " ").trim().slice(0, 15000); // Limit to ~15k chars
     return text;
   } catch (error) {
     console.error(`Failed to fetch URL ${url}:`, error);
@@ -45,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Authenticate user
     const user = await requireAuth(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     return NextResponse.json(AI_AGENTS);
@@ -61,11 +64,11 @@ export async function POST(request: NextRequest) {
     // Authenticate user
     const user = await requireAuth(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    console.log('AI Agent Request:', JSON.stringify(body, null, 2));
+    console.log("AI Agent Request:", JSON.stringify(body, null, 2));
 
     // Validate input using Zod schema
     const validatedData = validateAndSanitize(AIAgentRequestSchema, body);
@@ -73,13 +76,15 @@ export async function POST(request: NextRequest) {
     let { conversationHistory = [] } = validatedData;
 
     // Map conversation history to strictly typed AIMessage[]
-    const enrichedHistory: AIMessage[] = conversationHistory.map((msg: any, index: number) => ({
-      role: msg.role,
-      content: msg.content,
-      id: msg.id || `hist-${Date.now()}-${index}`,
-      agentId: msg.agentId || agentId,
-      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-    }));
+    const enrichedHistory: AIMessage[] = conversationHistory.map(
+      (msg: any, index: number) => ({
+        role: msg.role,
+        content: msg.content,
+        id: msg.id || `hist-${Date.now()}-${index}`,
+        agentId: msg.agentId || agentId,
+        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      }),
+    );
 
     // Helper to find URLs in message
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -104,35 +109,43 @@ export async function POST(request: NextRequest) {
     // Find the agent
     const agent = AI_AGENTS.find((a) => a.id === agentId);
     if (!agent) {
-      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    const response = await executeWithFallback(agent, enrichedMessage, enrichedHistory, user.id);
+    const response = await executeWithFallback(
+      agent,
+      enrichedMessage,
+      enrichedHistory,
+      user.id,
+    );
 
     return NextResponse.json(response);
-
   } catch (error) {
     const authUser = await requireAuth(request).catch(() => null);
-    const userId = authUser?.id || 'unknown';
+    const userId = authUser?.id || "unknown";
     logModelUsage({
       user_id: userId,
-      agent_id: 'error-handler',
-      provider: 'system',
-      model: 'error',
+      agent_id: "error-handler",
+      provider: "system",
+      model: "error",
       prompt_tokens: 0,
       completion_tokens: 0,
       cost_usd: 0,
       latency_ms: Date.now() - startTime,
-      status: 'failed',
+      status: "failed",
       error_message: error instanceof Error ? error.message : String(error),
     });
     return handleApiError(error);
   }
 }
 
-async function handleAnthropicProvider(agent: AIAgent, messages: AIMessage[], systemPrompt: string) {
+async function handleAnthropicProvider(
+  agent: AIAgent,
+  messages: AIMessage[],
+  systemPrompt: string,
+) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not defined');
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not defined");
 
   const anthropic = new Anthropic({ apiKey });
 
@@ -140,12 +153,16 @@ async function handleAnthropicProvider(agent: AIAgent, messages: AIMessage[], sy
     model: agent.model,
     system: systemPrompt,
     messages: messages
-      .filter(msg => msg.role !== 'system')
-      .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content })),
+      .filter((msg) => msg.role !== "system")
+      .map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      })),
     max_tokens: 2048,
   });
 
-  const textContent = response.content[0].type === 'text' ? response.content[0].text : '';
+  const textContent =
+    response.content[0].type === "text" ? response.content[0].text : "";
 
   return {
     response: textContent,
@@ -153,23 +170,28 @@ async function handleAnthropicProvider(agent: AIAgent, messages: AIMessage[], sy
   };
 }
 
-async function handleGoogleProvider(agent: AIAgent, message: string, conversationHistory: AIMessage[], systemPrompt: string) {
+async function handleGoogleProvider(
+  agent: AIAgent,
+  message: string,
+  conversationHistory: AIMessage[],
+  systemPrompt: string,
+) {
   const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) throw new Error('GOOGLE_API_KEY is not defined');
+  if (!apiKey) throw new Error("GOOGLE_API_KEY is not defined");
 
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const { GoogleGenerativeAI } = await import("@google/generative-ai");
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: agent.model });
 
   const history = (conversationHistory || []).map((msg: any) => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
+    role: msg.role === "assistant" ? "model" : "user",
     parts: [{ text: msg.content }],
   }));
 
   const chat = model.startChat({
     history,
     generationConfig: { maxOutputTokens: 2048 },
-    systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
+    systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
   });
 
   const result = await chat.sendMessage(message);
@@ -182,10 +204,11 @@ async function handleGoogleProvider(agent: AIAgent, message: string, conversatio
 }
 
 async function handleOllamaProvider(agent: AIAgent, messages: AIMessage[]) {
-  const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+  const OLLAMA_BASE_URL =
+    process.env.OLLAMA_BASE_URL || "http://localhost:11434";
   const ollamaResponse = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: agent.model,
       messages,
@@ -194,7 +217,8 @@ async function handleOllamaProvider(agent: AIAgent, messages: AIMessage[]) {
     }),
   });
 
-  if (!ollamaResponse.ok) throw new Error(`Ollama API returned ${ollamaResponse.status}`);
+  if (!ollamaResponse.ok)
+    throw new Error(`Ollama API returned ${ollamaResponse.status}`);
   const data = await ollamaResponse.json();
 
   return {
@@ -203,15 +227,82 @@ async function handleOllamaProvider(agent: AIAgent, messages: AIMessage[]) {
   };
 }
 
+async function handleOpenRouterProvider(
+  agent: AIAgent,
+  messages: AIMessage[],
+  systemPrompt: string,
+) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY is not defined");
 
-async function executeWithFallback(agent: AIAgent, message: string, conversationHistory: AIMessage[], userId: string) {
-  const providers = agent.supportedProviders.sort((a, b) => a.priority - b.priority);
+  // Map messages to OpenRouter format
+  const formattedMessages = [
+    { role: "system", content: systemPrompt },
+    ...messages
+      .filter((msg) => msg.role !== "system")
+      .map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      })),
+  ];
+
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer":
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        "X-Title": "AgentsFlowAI",
+      },
+      body: JSON.stringify({
+        model: agent.model,
+        messages: formattedMessages,
+        max_tokens: 2048,
+        temperature: 0.7,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      `OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`,
+    );
+  }
+
+  const data = await response.json();
+  const textContent = data.choices?.[0]?.message?.content || "";
+
+  return {
+    response: textContent,
+    tokensUsed: data.usage?.total_tokens || 0,
+  };
+}
+
+async function executeWithFallback(
+  agent: AIAgent,
+  message: string,
+  conversationHistory: AIMessage[],
+  userId: string,
+) {
+  const providers = agent.supportedProviders.sort(
+    (a, b) => a.priority - b.priority,
+  );
   let lastError: Error | null = null;
   const startTime = Date.now();
 
   const messages: AIMessage[] = [
     ...conversationHistory,
-    { role: 'user', content: message, agentId: agent.id, id: conversationHistory.length.toString(), timestamp: new Date() },
+    {
+      role: "user",
+      content: message,
+      agentId: agent.id,
+      id: conversationHistory.length.toString(),
+      timestamp: new Date(),
+    },
   ];
 
   for (const providerConfig of providers) {
@@ -220,12 +311,27 @@ async function executeWithFallback(agent: AIAgent, message: string, conversation
       let result;
       const systemPrompt = agent.systemPrompt;
 
-      if (provider === 'anthropic') {
-        result = await handleAnthropicProvider({ ...agent, model }, messages, systemPrompt);
-      } else if (provider === 'google') {
-        result = await handleGoogleProvider({ ...agent, model }, message, conversationHistory, systemPrompt);
-      } else if (provider === 'ollama') {
+      if (provider === "anthropic") {
+        result = await handleAnthropicProvider(
+          { ...agent, model },
+          messages,
+          systemPrompt,
+        );
+      } else if (provider === "google") {
+        result = await handleGoogleProvider(
+          { ...agent, model },
+          message,
+          conversationHistory,
+          systemPrompt,
+        );
+      } else if (provider === "ollama") {
         result = await handleOllamaProvider({ ...agent, model }, messages);
+      } else if (provider === "openrouter") {
+        result = await handleOpenRouterProvider(
+          { ...agent, model },
+          messages,
+          systemPrompt,
+        );
       } else {
         continue; // Skip unsupported providers
       }
@@ -240,7 +346,7 @@ async function executeWithFallback(agent: AIAgent, message: string, conversation
         completion_tokens: result.tokensUsed || 0,
         cost_usd: 0, // TODO: Implement cost calculation
         latency_ms: latency,
-        status: 'success',
+        status: "success",
       });
 
       return {
@@ -255,7 +361,9 @@ async function executeWithFallback(agent: AIAgent, message: string, conversation
       };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(`Provider ${provider} (${model}) failed: ${lastError.message}. Trying next provider.`);
+      console.warn(
+        `Provider ${provider} (${model}) failed: ${lastError.message}. Trying next provider.`,
+      );
       await logModelUsage({
         user_id: userId,
         agent_id: agent.id,
@@ -265,7 +373,7 @@ async function executeWithFallback(agent: AIAgent, message: string, conversation
         completion_tokens: 0,
         cost_usd: 0,
         latency_ms: Date.now() - startTime,
-        status: 'failed',
+        status: "failed",
         error_message: lastError.message,
       });
     }
@@ -276,32 +384,34 @@ async function executeWithFallback(agent: AIAgent, message: string, conversation
   await logModelUsage({
     user_id: userId,
     agent_id: agent.id,
-    provider: 'fallback',
-    model: 'static',
+    provider: "fallback",
+    model: "static",
     prompt_tokens: 0,
     completion_tokens: 0,
     cost_usd: 0,
     latency_ms: latency,
-    status: 'fallback',
-    error_message: lastError?.message || 'All providers failed',
+    status: "fallback",
+    error_message: lastError?.message || "All providers failed",
   });
 
   return {
     response: generateFallbackResponse(agent.id, message),
-    model: 'fallback',
+    model: "fallback",
     agentId: agent.id,
     agentName: agent.name,
     note: `All AI providers are currently unavailable. Using offline fallback mode. Last error: ${lastError?.message}`,
   };
 }
 
-
 function generateFallbackResponse(agentId: string, message: string): string {
   const lowercaseMessage = message.toLowerCase();
 
   switch (agentId) {
-    case 'web-dev-agent':
-      if (lowercaseMessage.includes('react') || lowercaseMessage.includes('component')) {
+    case "web-dev-agent":
+      if (
+        lowercaseMessage.includes("react") ||
+        lowercaseMessage.includes("component")
+      ) {
         return `# Web Development Suggestion
 
 Here's a basic React component structure to get you started:
@@ -350,7 +460,7 @@ What specific web development task can I help you with?
 
 *Note: Connect Ollama on your VPS for full AI-powered code generation.*`;
 
-    case 'analytics-agent':
+    case "analytics-agent":
       return `# Analytics Insights
 
 Based on your query, here are some analytical perspectives:
@@ -376,7 +486,7 @@ Based on your query, here are some analytical perspectives:
 
 *Connect Ollama for detailed data analysis and custom insights.*`;
 
-    case 'content-agent':
+    case "content-agent":
       return `# Content Creation Framework
 
 Here's a structure for creating compelling content:
@@ -410,7 +520,7 @@ Here's a structure for creating compelling content:
 
 *Connect Ollama for AI-generated content tailored to your specific needs.*`;
 
-    case 'marketing-agent':
+    case "marketing-agent":
       return `# Marketing Strategy Framework
 
 **Campaign Planning Checklist:**
@@ -453,7 +563,7 @@ Here's a structure for creating compelling content:
 
 *Connect Ollama for personalized marketing strategies and ad copy generation.*`;
 
-    case 'social-media-agent':
+    case "social-media-agent":
       return `# Social Media Content Ideas
 
 **Platform-Specific Tips:**
@@ -493,7 +603,7 @@ Here's a structure for creating compelling content:
 
 *Connect Ollama for AI-generated posts and personalized strategies.*`;
 
-    case 'seo-agent':
+    case "seo-agent":
       return `# SEO Optimization Guide
 
 **On-Page SEO Checklist:**
@@ -556,4 +666,3 @@ Please select a specific agent or ask me anything!
 *For full AI capabilities, ensure Ollama is running on your VPS.*`;
   }
 }
-

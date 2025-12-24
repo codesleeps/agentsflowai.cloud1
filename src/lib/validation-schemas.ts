@@ -84,7 +84,13 @@ const IntentSignalTypeEnum = z.enum([
 const RoleEnum = z.enum(["user", "assistant", "system"]);
 const ServiceTierEnum = z.enum(["basic", "growth", "enterprise"]);
 const OllamaActionEnum = z.enum(["generate", "chat", "models", "pull"]);
-const AIProviderEnum = z.enum(["ollama", "google", "anthropic", "openai"]);
+const AIProviderEnum = z.enum([
+  "ollama",
+  "google",
+  "anthropic",
+  "openai",
+  "openrouter",
+]);
 
 // Phone number regex (basic international format)
 const phoneRegex = /^\+?[\d\s\-\(\)]{7,}$/;
