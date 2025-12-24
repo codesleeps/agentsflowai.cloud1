@@ -13,31 +13,6 @@ async function main() {
       features: ["24/7 Availability", "Basic FAQs", "Lead Capture"],
       is_active: true,
     },
-    {
-      name: "AI Agent Growth",
-      description: "Advanced AI with custom training",
-      tier: "growth",
-      price: 599,
-      features: [
-        "Everything in Basic",
-        "Custom Knowledge Base",
-        "CRM Integration",
-      ],
-      is_active: true,
-    },
-    {
-      name: "AI Agent Enterprise",
-      description: "Full automated workflow solution",
-      tier: "enterprise",
-      price: 999,
-      features: [
-        "Everything in Growth",
-        "Custom Workflows",
-        "Dedicated Support",
-        "SLA",
-      ],
-      is_active: true,
-    },
   ];
 
   for (const service of defaultServices) {
@@ -75,7 +50,7 @@ async function main() {
   ];
 
   for (const source of enrichmentSources) {
-    await prisma.enrichment_sources.create({ data: source });
+    await prisma.enrichmentSource.create({ data: source });
   }
 
   // Seed AIProviderCosts records for OpenRouter models
