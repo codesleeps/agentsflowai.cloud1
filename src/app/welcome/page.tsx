@@ -395,7 +395,7 @@ export default function WelcomePage() {
               </p>
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button size="lg" asChild>
-                  <Link href="/chat">
+                  <Link href="/fast-chat">
                     <MessageSquare className="mr-2 h-5 w-5" />
                     Try AI Chat Free
                   </Link>
