@@ -44,7 +44,11 @@ describe("/api/integrations/ai/generate-text", () => {
   });
 
   it("should return success when generation succeeds", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
     const mockResult = {
       text: "Generated response",
       fallbackUsed: false,
@@ -81,7 +85,11 @@ describe("/api/integrations/ai/generate-text", () => {
   });
 
   it("should return fallback response when all providers fail", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
     const mockError = new Error("All providers failed");
 
     mockRequireAuth.mockResolvedValue(mockUser);
@@ -118,9 +126,12 @@ describe("/api/integrations/ai/generate-text", () => {
     expect(responseData.fallbackUsed).toBe(true);
     expect(responseData.provider).toBe("static-fallback");
   });
-
   it("should handle invalid request body", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
 
     mockRequireAuth.mockResolvedValue(mockUser);
     mockValidateAndSanitize.mockImplementation(() => {
@@ -146,7 +157,11 @@ describe("/api/integrations/ai/generate-text", () => {
   });
 
   it("should log integration error when request fails", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
     const mockError = new Error("Test error");
 
     mockRequireAuth.mockResolvedValue(mockUser);
@@ -185,7 +200,11 @@ describe("/api/integrations/ai/generate-text", () => {
   });
 
   it("should handle different model providers", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
     const mockResult = {
       text: "Generated response",
       fallbackUsed: false,
@@ -222,7 +241,11 @@ describe("/api/integrations/ai/generate-text", () => {
   });
 
   it("should handle rate limiting gracefully", async () => {
-    const mockUser = { id: "user-123" };
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+    };
     const mockError = new Error("Rate limit exceeded");
 
     mockRequireAuth.mockResolvedValue(mockUser);
