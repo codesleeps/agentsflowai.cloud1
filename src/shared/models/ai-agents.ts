@@ -188,7 +188,7 @@ export const AI_AGENTS: AIAgent[] = [
     category: "web-development",
     model: "anthropic/claude-3.5-sonnet",
     provider: "openrouter",
-    defaultProvider: "openrouter",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -201,21 +201,25 @@ export const AI_AGENTS: AIAgent[] = [
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "mistral",
         priority: 1,
       },
       {
         provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "openai/gpt-4-turbo",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 4,
+      },
     ],
     systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, TypeScript, Node.js, and Tailwind CSS. You help users:
 - Generate clean, maintainable code

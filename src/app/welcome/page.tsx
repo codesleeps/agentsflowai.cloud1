@@ -235,8 +235,10 @@ export default function WelcomePage() {
               <Bot className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">AgentsFlowAI</span>
             </div>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
 
-            {/* Desktop Navigation */}
+              {/* Desktop Navigation */}
             <div className="hidden items-center gap-8 md:flex">
               <a
                 href="#features"
