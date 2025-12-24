@@ -27,8 +27,9 @@ export function DateRangePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`w-[280px] justify-start text-left font-normal ${!value?.from && !value?.to && "text-muted-foreground"
-            }`}
+          className={`w-[280px] justify-start text-left font-normal ${
+            !value?.from && !value?.to && "text-muted-foreground"
+          }`}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {value?.from ? (
@@ -48,7 +49,11 @@ export function DateRangePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="range"
-          selected={value}
+          selected={
+            value?.from && value?.to
+              ? { from: value.from, to: value.to }
+              : undefined
+          }
           onSelect={(selected) => {
             onValueChange?.({ from: selected?.from, to: selected?.to });
             if (selected?.from && selected?.to) {

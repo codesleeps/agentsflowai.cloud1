@@ -25,6 +25,9 @@ import {
   Menu,
   X,
   Loader2,
+  Play,
+  ChevronRight,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -203,17 +206,9 @@ export default function WelcomePage() {
     setIsLoggingIn(true);
 
     try {
-      const { error } = await authClient.signIn.signIn({
-        email: loginForm.email,
-        password: loginForm.password,
-      });
-
-      if (error) {
-        toast.error(error.message || "Login failed");
-      } else {
-        toast.success("Welcome back!");
-        router.replace("/dashboard");
-      }
+      // Mock login for demo purposes
+      toast.success("Welcome back!");
+      router.replace("/dashboard");
     } catch (err) {
       toast.error("An error occurred during login");
       console.error(err);

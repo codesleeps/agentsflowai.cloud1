@@ -7,8 +7,10 @@ const env = getEnv();
 // Validate baseURL for production
 const baseURL = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-if (env.NODE_ENV === 'production' && !baseURL.startsWith('https://')) {
-  console.warn('[AUTH] Warning: Using non-HTTPS baseURL in production. This is not recommended for security reasons.');
+if (env.NODE_ENV === "production" && !baseURL.startsWith("https://")) {
+  console.warn(
+    "[AUTH] Warning: Using non-HTTPS baseURL in production. This is not recommended for security reasons.",
+  );
 }
 
 export const authClient = createAuthClient({
@@ -19,7 +21,7 @@ export const authClient = createAuthClient({
 // Enhanced error boundary for authentication failures
 export function getAuthClient() {
   try {
-    if (env.NEXT_PUBLIC_DEV_USER_NAME) {
+    if (env.NODE_ENV === "development" && env.NEXT_PUBLIC_DEV_USER_NAME) {
       return {
         data: {
           user: {
@@ -33,15 +35,15 @@ export function getAuthClient() {
 
     return authClient.useSession();
   } catch (error) {
-    console.error('[AUTH] Authentication client error:', error);
+    console.error("[AUTH] Authentication client error:", error);
 
     // Return fallback for development
-    if (env.NODE_ENV === 'development') {
+    if (env.NODE_ENV === "development") {
       return {
         data: {
           user: {
-            name: 'Development User',
-            email: 'dev@example.com',
+            name: "Development User",
+            email: "dev@example.com",
             image: undefined,
           },
         },
@@ -70,13 +72,13 @@ export function getAuthActiveOrganization() {
     };
     // return authClient.useActiveOrganization();
   } catch (error) {
-    console.error('[AUTH] Active organization error:', error);
+    console.error("[AUTH] Active organization error:", error);
 
     // Return fallback for development
-    if (env.NODE_ENV === 'development') {
+    if (env.NODE_ENV === "development") {
       return {
         data: {
-          name: 'Development Organization',
+          name: "Development Organization",
         },
       };
     }
@@ -96,14 +98,14 @@ export async function refreshSession() {
     // console.log('[AUTH] Session refreshed successfully');
     return true;
   } catch (error) {
-    console.error('[AUTH] Session refresh failed:', error);
+    console.error("[AUTH] Session refresh failed:", error);
     return false;
   }
 }
 
 // Log authentication events for security monitoring
 export function logAuthEvent(event: string, details?: any) {
-  if (env.NODE_ENV === 'production') {
+  if (env.NODE_ENV === "production") {
     // In production, you might want to send this to a logging service
     console.log(`[AUTH EVENT] ${event}`, details);
   } else {

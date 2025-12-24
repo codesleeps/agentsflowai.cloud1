@@ -85,8 +85,6 @@ async function handleAnthropicProvider(
       status: "success",
       agent_id: agentConfig.agentId,
       error_message: undefined,
-      prompt,
-      response: text,
     });
 
     return { text, provider: "anthropic" };
@@ -170,8 +168,6 @@ async function handleGoogleProvider(
       status: "success",
       agent_id: agentConfig.agentId,
       error_message: undefined,
-      prompt,
-      response: text,
     });
 
     return { text, provider: "google" };
@@ -232,8 +228,6 @@ async function handleOllamaProvider(
       status: "success",
       agent_id: agentConfig.agentId,
       error_message: undefined,
-      prompt,
-      response: text,
     });
 
     return { text, provider: "ollama" };
@@ -429,8 +423,6 @@ export async function executeSimpleGeneration(
         status: "failed",
         agent_id: agentConfig.agentId,
         error_message: error instanceof Error ? error.message : "Unknown error",
-        prompt,
-        response: "",
       });
     }
   }
@@ -453,8 +445,6 @@ export async function executeSimpleGeneration(
     status: "failed",
     agent_id: agentConfig.agentId,
     error_message: lastError?.message || "All providers failed",
-    prompt,
-    response: fallbackText,
   });
 
   return {
