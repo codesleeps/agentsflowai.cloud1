@@ -26,7 +26,7 @@ class TwilioService {
       );
     }
 
-    this.client = new Twilio(accountSid, authToken);
+    this.client = Twilio(accountSid, authToken);
     this.config = this.getDefaultConfig();
   }
 
@@ -59,7 +59,7 @@ class TwilioService {
    * Generate TwiML response for incoming calls
    */
   async handleIncomingCall(webhook: TwilioCallWebhook): Promise<string> {
-    const twiml = new (Twilio as any).twiml.VoiceResponse();
+    const twiml = new Twilio.twiml.VoiceResponse();
 
     // Check business hours
     if (!this.isBusinessHours()) {
