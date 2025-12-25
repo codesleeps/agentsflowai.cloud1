@@ -6,12 +6,12 @@ export interface CallSession {
   callerId: string;
   startTime: Date;
   endTime?: Date;
-  status: "ringing" | "in_progress" | "completed" | "failed" | "voicemail";
+  status: string;
   transcript: CallTranscript[];
   aiResponses: CallResponse[];
   leadId?: string;
   agentId?: string;
-  sentiment?: "positive" | "neutral" | "negative";
+  sentiment?: string;
   intent?: string;
   confidence?: number;
 }
@@ -19,7 +19,7 @@ export interface CallSession {
 export interface CallTranscript {
   id: string;
   sessionId: string;
-  speaker: "caller" | "ai";
+  speaker: string;
   content: string;
   timestamp: Date;
   confidence: number;

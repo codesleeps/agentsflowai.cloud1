@@ -93,7 +93,6 @@ class TwilioService {
       .stream({
         name: "call-stream",
         track: "inbound_track",
-        mediaFormat: "audio_raw",
       });
 
     // Welcome message
@@ -101,7 +100,7 @@ class TwilioService {
 
     // Gather user input
     const gather = twiml.gather({
-      input: "speech",
+      input: ["speech"],
       action: "/api/call-handler/analyze",
       method: "POST",
       speechTimeout: "auto",
@@ -171,7 +170,7 @@ class TwilioService {
         enableWebSearch: false,
         enableDeepResearch: false,
         reasoningEffort: "medium",
-        modelProvider: "anthropic",
+        modelProvider: "openai",
         userId: "system", // Use system user for call handling
       });
 
@@ -186,11 +185,6 @@ class TwilioService {
       };
 
       await this.saveResponse(aiResponse);
-
-      // Update session
-      await this.updateCallSession(sessionId, {
-        lastActivity: new Date(),
-      });
 
       // Send response back to Twilio (this would be handled by the API endpoint)
       return response.text;
@@ -211,6 +205,7 @@ class TwilioService {
     // Process voicemail and create lead
     const leadData = {
       name: "Voicemail Caller",
+      email: `voicemail_${Date.now()}@unknown.com`, // Generate a placeholder email
       phone: "Unknown",
       source: "voicemail",
       status: "new",
@@ -403,12 +398,13 @@ class TwilioService {
     await prisma.lead.create({
       data: {
         name: leadData.name,
+        email: leadData.email,
         phone: leadData.phone,
         source: leadData.source,
         status: leadData.status,
         notes: leadData.notes,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
       },
     });
   }
