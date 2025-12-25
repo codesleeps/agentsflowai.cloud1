@@ -12,22 +12,36 @@ import { prisma } from "../prisma";
 import { executeSimpleGeneration } from "../ai-fallback-handler";
 
 class TwilioService {
-  private client: TwilioClient;
+  private client: TwilioClient | null = null;
   private config: CallConfig;
+  private initialized = false;
 
-  constructor() {
+  private initializeClient(): void {
+    if (this.initialized) return;
+
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-    if (!accountSid || !authToken || !phoneNumber) {
+    if (!accountSid || !authToken) {
       throw new Error(
-        "Twilio credentials not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.",
+        "Twilio credentials not configured. Please set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN environment variables.",
       );
     }
 
     this.client = Twilio(accountSid, authToken);
+    this.initialized = true;
+  }
+
+  constructor() {
     this.config = this.getDefaultConfig();
+  }
+
+  private getClient(): TwilioClient {
+    this.initializeClient();
+    if (!this.client) {
+      throw new Error("Twilio client not initialized");
+    }
+    return this.client;
   }
 
   private getDefaultConfig(): CallConfig {
