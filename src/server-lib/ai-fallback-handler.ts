@@ -345,11 +345,11 @@ export async function executeSimpleGeneration(
         }
       : {
           agentId: "fast-chat-agent",
-          primaryProvider: "anthropic",
-          primaryModel: "claude-sonnet-4-5-20250929",
+          primaryProvider: "ollama",
+          primaryModel: "glm-4.6:cloud",
           fallbackChain: [
-            { provider: "google", model: "gemini-pro", priority: 1 },
-            { provider: "ollama", model: "llama2", priority: 2 },
+            { provider: "ollama", model: "mistral", priority: 1 },
+            { provider: "google", model: "gemini-2.0-flash", priority: 2 },
           ],
         };
 

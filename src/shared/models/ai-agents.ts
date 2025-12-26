@@ -186,8 +186,8 @@ export const AI_AGENTS: AIAgent[] = [
       "Expert in web development, code generation, debugging, and optimization",
     icon: "💻",
     category: "web-development",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
@@ -202,23 +202,28 @@ export const AI_AGENTS: AIAgent[] = [
     supportedProviders: [
       {
         provider: "ollama",
-        model: "mistral",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "openai/gpt-4-turbo",
         priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
       },
     ],
     systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, TypeScript, Node.js, and Tailwind CSS. You help users:
@@ -237,9 +242,9 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
       "Data analysis, insights generation, and business intelligence",
     icon: "📊",
     category: "analytics",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
-    defaultProvider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -252,21 +257,30 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
+      },
     ],
     systemPrompt: `You are a data analytics expert specializing in business intelligence and data-driven decision making. You help users:
 - Analyze business metrics and KPIs
@@ -284,9 +298,9 @@ Always provide specific, actionable recommendations. Use data to support your in
     description: "Blog posts, articles, copy, and all types of written content",
     icon: "✍️",
     category: "content-creation",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
-    defaultProvider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -299,21 +313,30 @@ Always provide specific, actionable recommendations. Use data to support your in
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
+      },
     ],
     systemPrompt: `You are an expert content creator and copywriter with years of experience in digital marketing. You help users:
 - Write engaging blog posts and articles
@@ -332,9 +355,9 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
       "Campaign strategies, ad copy, funnels, and marketing automation",
     icon: "📣",
     category: "marketing",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
-    defaultProvider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -347,21 +370,30 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
+      },
     ],
     systemPrompt: `You are a marketing strategist with expertise in digital marketing, growth hacking, and conversion optimization. You help users:
 - Create comprehensive marketing strategies
@@ -379,9 +411,9 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     description: "Social media content, scheduling, engagement strategies",
     icon: "📱",
     category: "social-media",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
-    defaultProvider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -394,21 +426,30 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
+      },
     ],
     systemPrompt: `You are a social media expert with deep knowledge of all major platforms including Twitter/X, LinkedIn, Instagram, Facebook, and TikTok. You help users:
 - Create engaging social media posts
@@ -427,9 +468,9 @@ Always consider platform-specific best practices. Focus on engagement and commun
       "Search engine optimization, keywords, meta tags, and rankings",
     icon: "🔍",
     category: "seo",
-    model: "anthropic/claude-3.5-sonnet",
-    provider: "openrouter",
-    defaultProvider: "openrouter",
+    model: "glm-4.6:cloud",
+    provider: "ollama",
+    defaultProvider: "ollama",
     costTier: "medium",
     isActive: true,
     capabilities: [
@@ -442,21 +483,30 @@ Always consider platform-specific best practices. Focus on engagement and commun
     ],
     supportedProviders: [
       {
-        provider: "openrouter",
-        model: "anthropic/claude-3.5-sonnet",
+        provider: "ollama",
+        model: "glm-4.6:cloud",
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "ollama",
+        model: "mistral",
         priority: 2,
       },
       {
         provider: "openrouter",
-        model: "google/gemini-pro",
+        model: "anthropic/claude-3.5-sonnet",
         priority: 3,
       },
-      { provider: "ollama", model: "mistral", priority: 4 },
+      {
+        provider: "openrouter",
+        model: "openai/gpt-4-turbo",
+        priority: 4,
+      },
+      {
+        provider: "openrouter",
+        model: "google/gemini-pro",
+        priority: 5,
+      },
     ],
     systemPrompt: `You are an SEO expert with comprehensive knowledge of search engine algorithms, keyword research, and content optimization. You help users:
 - Conduct keyword research
@@ -475,7 +525,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "High-speed responses using local Ollama for quick answers and chat",
     icon: "⚡",
     category: "fast-chat",
-    model: "mistral",
+    model: "glm-4.6:cloud",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "free",
@@ -488,8 +538,9 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "Chat and conversation",
     ],
     supportedProviders: [
-      { provider: "ollama", model: "mistral", priority: 1 },
-      { provider: "google", model: "gemini-2.0-flash", priority: 2 },
+      { provider: "ollama", model: "glm-4.6:cloud", priority: 1 },
+      { provider: "ollama", model: "mistral", priority: 2 },
+      { provider: "google", model: "gemini-2.0-flash", priority: 3 },
     ],
     systemPrompt: `You are a helpful, fast, and efficient AI assistant powered by Ollama's Mistral model.
 - Keep answers concise and to the point.
