@@ -186,7 +186,7 @@ export const AI_AGENTS: AIAgent[] = [
       "Expert in web development, code generation, debugging, and optimization",
     icon: "💻",
     category: "web-development",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -202,7 +202,7 @@ export const AI_AGENTS: AIAgent[] = [
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -242,7 +242,7 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
       "Data analysis, insights generation, and business intelligence",
     icon: "📊",
     category: "analytics",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -258,7 +258,7 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -298,7 +298,7 @@ Always provide specific, actionable recommendations. Use data to support your in
     description: "Blog posts, articles, copy, and all types of written content",
     icon: "✍️",
     category: "content-creation",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -314,7 +314,7 @@ Always provide specific, actionable recommendations. Use data to support your in
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -355,7 +355,7 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
       "Campaign strategies, ad copy, funnels, and marketing automation",
     icon: "📣",
     category: "marketing",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -371,7 +371,7 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -411,7 +411,7 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     description: "Social media content, scheduling, engagement strategies",
     icon: "📱",
     category: "social-media",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -427,7 +427,7 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -468,7 +468,7 @@ Always consider platform-specific best practices. Focus on engagement and commun
       "Search engine optimization, keywords, meta tags, and rankings",
     icon: "🔍",
     category: "seo",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -484,7 +484,7 @@ Always consider platform-specific best practices. Focus on engagement and commun
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm-4.6:cloud",
+        model: "glm4:9b",
         priority: 1,
       },
       {
@@ -525,7 +525,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "High-speed responses using local Ollama for quick answers and chat",
     icon: "⚡",
     category: "fast-chat",
-    model: "glm-4.6:cloud",
+    model: "glm4:9b",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "free",
@@ -538,7 +538,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "Chat and conversation",
     ],
     supportedProviders: [
-      { provider: "ollama", model: "glm-4.6:cloud", priority: 1 },
+      { provider: "ollama", model: "glm4:9b", priority: 1 },
       { provider: "ollama", model: "mistral", priority: 2 },
       { provider: "google", model: "gemini-2.0-flash", priority: 3 },
     ],

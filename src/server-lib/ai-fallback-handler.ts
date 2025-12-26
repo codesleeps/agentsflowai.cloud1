@@ -335,18 +335,19 @@ export async function executeSimpleGeneration(
           primaryProvider: "google",
           primaryModel: "gemini-pro",
           fallbackChain: [
+            { provider: "ollama", model: "glm4:9b", priority: 1 },
+            { provider: "ollama", model: "mistral", priority: 2 },
             {
               provider: "anthropic",
               model: "claude-sonnet-4-5-20250929",
-              priority: 1,
+              priority: 3,
             },
-            { provider: "ollama", model: "llama2", priority: 2 },
           ],
         }
       : {
           agentId: "fast-chat-agent",
           primaryProvider: "ollama",
-          primaryModel: "glm-4.6:cloud",
+          primaryModel: "glm4:9b",
           fallbackChain: [
             { provider: "ollama", model: "mistral", priority: 1 },
             { provider: "google", model: "gemini-2.0-flash", priority: 2 },
