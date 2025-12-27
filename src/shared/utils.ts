@@ -19,7 +19,6 @@ export function buildQueryParams(params: Record<string, unknown>): string | null
         query.push(`${encodeURIComponent(key)}[]=${encodeURIComponent(String(item))}`);
       }
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       query.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
     }
   }

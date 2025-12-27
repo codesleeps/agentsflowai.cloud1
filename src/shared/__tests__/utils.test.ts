@@ -3,8 +3,7 @@ import { buildQueryParams } from '../utils';
 describe('buildQueryParams', () => {
   describe('null and empty handling', () => {
     test('returns null for null input', () => {
-      // @ts-expect-error - testing null handling
-      expect(buildQueryParams(null)).toBeNull();
+      expect(buildQueryParams(null as any)).toBeNull();
     });
 
     test('returns null for empty object', () => {

@@ -14,8 +14,14 @@ jest.mock('@/server-lib/internal-db-query', () => ({
 
 import { GET } from '../dashboard/stats/route';
 import { queryInternalDatabase } from '@/server-lib/internal-db-query';
+import { NextRequest } from 'next/server';
 
 const mockQuery = queryInternalDatabase as jest.MockedFunction<typeof queryInternalDatabase>;
+
+// Helper to create mock NextRequest
+const createMockRequest = () => {
+  return new NextRequest('http://localhost:3000/api/dashboard/stats');
+};
 
 describe('GET /api/dashboard/stats', () => {
   beforeEach(() => {
@@ -53,7 +59,7 @@ describe('GET /api/dashboard/stats', () => {
         { id: '2', name: 'Lead 2', email: 'lead2@example.com' },
       ]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -76,7 +82,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.conversionRate).toBe(25);  // 50/200 = 25%
@@ -93,7 +99,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.totalLeads).toBe(0);
@@ -116,7 +122,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.leadsByStatus).toHaveLength(3);
@@ -139,7 +145,7 @@ describe('GET /api/dashboard/stats', () => {
       ])
       .mockResolvedValueOnce([]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.leadsBySource).toHaveLength(2);
@@ -163,7 +169,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce(recentLeads);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.recentLeads).toEqual(recentLeads);
@@ -180,7 +186,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data.totalLeads).toBe(0);
@@ -190,7 +196,7 @@ describe('GET /api/dashboard/stats', () => {
   test('returns 500 on database error', async () => {
     mockQuery.mockRejectedValue(new Error('Database connection failed'));
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -208,7 +214,7 @@ describe('GET /api/dashboard/stats', () => {
       .mockResolvedValueOnce([{ source: 'website', count: '5' }])
       .mockResolvedValueOnce([{ id: '1', name: 'Test', email: 'test@test.com' }]);
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
     const data = await response.json();
 
     expect(data).toHaveProperty('totalLeads');

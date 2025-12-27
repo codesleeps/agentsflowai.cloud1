@@ -483,7 +483,7 @@ export default function WelcomePage() {
                   </form>
                   <div className="mt-4 text-center text-sm">
                     <span className="text-muted-foreground">
-                      Don't have an account?{" "}
+                      Don&apos;t have an account?{" "}
                     </span>
                     <a
                       href="#signup"
@@ -719,7 +719,7 @@ export default function WelcomePage() {
                     ))}
                   </div>
                   <p className="mb-6 italic text-muted-foreground">
-                    "{testimonial.quote}"
+                    &ldquo;{testimonial.quote}&rdquo;
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -799,7 +799,7 @@ export default function WelcomePage() {
                 Contact Us
               </Badge>
               <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
-                Let's Talk About Your Needs
+                Let&apos;s Talk About Your Needs
               </h2>
               <p className="mb-8 text-lg text-muted-foreground">
                 Have questions? Want a personalized demo? Our team is here to

@@ -66,7 +66,7 @@ export function TiptapEditorWithPreview({
     if (editor.isActive("heading", { level: 2 })) return "h2";
     if (editor.isActive("heading", { level: 3 })) return "h3";
     return "";
-  }, [editor, html]);
+  }, [editor]);
 
   const can = (cb: () => boolean) => (editor ? cb() : false);
   const isActive = (name: string, attrs?: Record<string, unknown>) =>
@@ -79,9 +79,8 @@ export function TiptapEditorWithPreview({
       {label ? <div className="mb-2 text-sm font-medium text-muted-foreground">{label}</div> : null}
 
       <div
-        className={`rounded-md border bg-background transition-shadow ${
-          focused ? "ring-2 ring-ring ring-offset-2 ring-offset-background shadow-sm" : ""
-        }`}
+        className={`rounded-md border bg-background transition-shadow ${focused ? "ring-2 ring-ring ring-offset-2 ring-offset-background shadow-sm" : ""
+          }`}
       >
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-2 py-2">
