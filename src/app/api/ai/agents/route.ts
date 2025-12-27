@@ -9,6 +9,7 @@ import { handleApiError } from "@/lib/api-errors";
 import * as cheerio from "cheerio";
 import axios from "axios";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { logModelUsage } from "@/server-lib/ai-usage-tracker";
 import { AIMessage } from "@/shared/models/types";
 import { AIAgent } from "../../../../shared/models/ai-agents";
@@ -282,6 +283,38 @@ async function handleOpenRouterProvider(
   };
 }
 
+async function handleOpenAIProvider(
+  agent: AIAgent,
+  messages: AIMessage[],
+  systemPrompt: string,
+) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not defined");
+
+  const openai = new OpenAI({ apiKey });
+
+  const response = await openai.chat.completions.create({
+    model: agent.model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      ...messages
+        .filter((msg) => msg.role !== "system")
+        .map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        })),
+    ],
+    max_tokens: 2048,
+  });
+
+  const textContent = response.choices[0]?.message?.content || "";
+
+  return {
+    response: textContent,
+    tokensUsed: response.usage?.total_tokens || 0,
+  };
+}
+
 async function executeWithFallback(
   agent: AIAgent,
   message: string,
@@ -328,6 +361,12 @@ async function executeWithFallback(
         result = await handleOllamaProvider({ ...agent, model }, messages);
       } else if (provider === "openrouter") {
         result = await handleOpenRouterProvider(
+          { ...agent, model },
+          messages,
+          systemPrompt,
+        );
+      } else if (provider === "openai") {
+        result = await handleOpenAIProvider(
           { ...agent, model },
           messages,
           systemPrompt,
