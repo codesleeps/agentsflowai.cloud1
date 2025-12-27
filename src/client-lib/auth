@@ -42,8 +42,8 @@ export function getAuthClient() {
       return {
         data: {
           user: {
-            name: "Development User",
-            email: "dev@example.com",
+            name: "codesleeps",
+            email: "info@agentsflowai.cloud",
             image: undefined,
           },
         },
