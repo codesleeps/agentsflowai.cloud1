@@ -186,7 +186,7 @@ export const AI_AGENTS: AIAgent[] = [
       "Expert in web development, code generation, debugging, and optimization",
     icon: "💻",
     category: "web-development",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -197,17 +197,18 @@ export const AI_AGENTS: AIAgent[] = [
       "Optimize performance",
       "Create API endpoints",
       "Write unit tests",
+      "Write code to file",
       "Explain code concepts",
     ],
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -216,17 +217,17 @@ export const AI_AGENTS: AIAgent[] = [
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
-    systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, TypeScript, Node.js, and Tailwind CSS. You help users:
+    systemPrompt: `You are an expert web developer specializing in modern technologies including React, Next.js, Python, TypeScript, Node.js, and Tailwind CSS. You help users:
 - Generate clean, maintainable code
 - Debug issues and fix errors
 - Optimize performance
@@ -242,7 +243,7 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
       "Data analysis, insights generation, and business intelligence",
     icon: "📊",
     category: "analytics",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -258,12 +259,12 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -272,13 +273,13 @@ Always provide code examples when relevant. Use TypeScript for type safety. Foll
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
@@ -298,7 +299,7 @@ Always provide specific, actionable recommendations. Use data to support your in
     description: "Blog posts, articles, copy, and all types of written content",
     icon: "✍️",
     category: "content-creation",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -314,12 +315,12 @@ Always provide specific, actionable recommendations. Use data to support your in
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -328,13 +329,13 @@ Always provide specific, actionable recommendations. Use data to support your in
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
@@ -355,7 +356,7 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
       "Campaign strategies, ad copy, funnels, and marketing automation",
     icon: "📣",
     category: "marketing",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -371,12 +372,12 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -385,13 +386,13 @@ Always focus on clarity, engagement, and conversion. Use storytelling techniques
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
@@ -411,7 +412,7 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     description: "Social media content, scheduling, engagement strategies",
     icon: "📱",
     category: "social-media",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -427,12 +428,12 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -441,13 +442,13 @@ Always focus on measurable results and ROI. Consider the customer journey. Use p
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
@@ -468,7 +469,7 @@ Always consider platform-specific best practices. Focus on engagement and commun
       "Search engine optimization, keywords, meta tags, and rankings",
     icon: "🔍",
     category: "seo",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "medium",
@@ -484,12 +485,12 @@ Always consider platform-specific best practices. Focus on engagement and commun
     supportedProviders: [
       {
         provider: "ollama",
-        model: "glm4:9b",
+        model: "mistral:latest",
         priority: 1,
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "llama3.1:8b",
         priority: 2,
       },
       {
@@ -498,13 +499,13 @@ Always consider platform-specific best practices. Focus on engagement and commun
         priority: 3,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "google",
+        model: "gemini-pro",
         priority: 4,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 5,
       },
     ],
@@ -525,7 +526,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "High-speed responses using local Ollama for quick answers and chat",
     icon: "⚡",
     category: "fast-chat",
-    model: "glm4:9b",
+    model: "mistral:latest",
     provider: "ollama",
     defaultProvider: "ollama",
     costTier: "free",
@@ -538,8 +539,8 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       "Chat and conversation",
     ],
     supportedProviders: [
-      { provider: "ollama", model: "glm4:9b", priority: 1 },
-      { provider: "ollama", model: "mistral", priority: 2 },
+      { provider: "ollama", model: "mistral:latest", priority: 1 },
+      { provider: "ollama", model: "llama3.1:8b", priority: 2 },
       { provider: "google", model: "gemini-2.0-flash", priority: 3 },
     ],
     systemPrompt: `You are a helpful, fast, and efficient AI assistant powered by Ollama's Mistral model.
@@ -574,7 +575,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
         model: "claude-3-5-sonnet-20241022",
         priority: 2,
       },
-      { provider: "ollama", model: "mistral", priority: 3 },
+      { provider: "ollama", model: "mistral:latest", priority: 3 },
     ],
     systemPrompt: `You are an advanced AI assistant powered by Google's Gemini Flash model.
 - Leverage your advanced reasoning capabilities for complex problems.
@@ -610,13 +611,13 @@ Always follow current SEO best practices. Focus on user intent and search qualit
         priority: 1,
       },
       {
-        provider: "openrouter",
-        model: "openai/gpt-4-turbo",
+        provider: "openai",
+        model: "gpt-4-turbo",
         priority: 2,
       },
       {
-        provider: "openrouter",
-        model: "google/gemini-pro",
+        provider: "google",
+        model: "gemini-pro",
         priority: 3,
       },
       {
@@ -626,7 +627,7 @@ Always follow current SEO best practices. Focus on user intent and search qualit
       },
       {
         provider: "ollama",
-        model: "mistral",
+        model: "mistral:latest",
         priority: 5,
       },
     ],
