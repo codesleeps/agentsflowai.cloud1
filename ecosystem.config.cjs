@@ -29,6 +29,7 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
         PORT: 3005,
+        NEXT_PUBLIC_APP_URL: "https://agentsflowai.cloud",
       },
 
       // Logging
@@ -68,7 +69,7 @@ module.exports = {
       user: "root",
       host: "srv1187860.hstgr.cloud",
       ref: "origin/main",
-      repo: "https://github.com/your-org/agentsflow-ai.cloud.git",
+      repo: "https://github.com/codesleeps/agentsflow-ai.cloud.git",
       path: "/var/www/agentsflow-ai",
       ssh_options: [
         "IdentityFile=~/.ssh/deploy_key",
@@ -87,6 +88,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3005,
+        NEXT_PUBLIC_APP_URL: "https://agentsflowai.cloud",
       },
     },
   },
