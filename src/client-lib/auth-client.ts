@@ -15,7 +15,7 @@ if (env.NODE_ENV === "production" && !baseURL.startsWith("https://")) {
 
 export const authClient = createAuthClient({
   baseURL,
-  // plugins: [organizationClient()],
+  plugins: [organizationClient()],
 });
 
 // Enhanced error boundary for authentication failures
@@ -70,7 +70,6 @@ export function getAuthActiveOrganization() {
         name: "AgentsFlowAI Org",
       },
     };
-    // return authClient.useActiveOrganization();
   } catch (error) {
     console.error("[AUTH] Active organization error:", error);
 
@@ -94,8 +93,6 @@ export async function refreshSession() {
       return true; // Dev mode doesn't need refresh
     }
 
-    // await authClient.refreshSession();
-    // console.log('[AUTH] Session refreshed successfully');
     return true;
   } catch (error) {
     console.error("[AUTH] Session refresh failed:", error);
@@ -106,7 +103,6 @@ export async function refreshSession() {
 // Log authentication events for security monitoring
 export function logAuthEvent(event: string, details?: any) {
   if (env.NODE_ENV === "production") {
-    // In production, you might want to send this to a logging service
     console.log(`[AUTH EVENT] ${event}`, details);
   } else {
     console.log(`[AUTH EVENT] ${event}`, details);
