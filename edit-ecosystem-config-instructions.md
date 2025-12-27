@@ -28,20 +28,45 @@ The `ecosystem.config.cjs` file is located in the project root and includes:
 - **Repository:** https://github.com/codesleeps/agentsflow-ai.cloud.git
 - **Branch:** origin/main
 
-## Commands
+## Reload Application
+
+After updating the configuration, reload the application to apply changes:
+
+### Option 1: SSH into server and reload directly
+
+```bash
+ssh root@srv1187860.hstgr.cloud
+cd /var/www/agentsflow-ai
+pm2 reload ecosystem.config.cjs --env production
+```
+
+### Option 2: Single command (if SSH is configured)
+
+```bash
+ssh root@srv1187860.hstgr.cloud "cd /var/www/agentsflow-ai && pm2 reload ecosystem.config.cjs --env production"
+```
+
+### Verify reload
+
+```bash
+pm2 status
+pm2 logs agentsflow-ai --lines 20
+```
+
+## Other Commands
 
 ```bash
 # Start the application
 pm2 start ecosystem.config.cjs --env production
-
-# Reload the application (applies env changes)
-pm2 reload ecosystem.config.cjs --env production
 
 # Stop the application
 pm2 stop ecosystem.config.cjs
 
 # Delete the application
 pm2 delete ecosystem.config.cjs
+
+# Restart the application
+pm2 restart ecosystem.config.cjs --env production
 
 # Deploy using PM2's built-in deployment system
 pm2 deploy ecosystem.config.cjs production setup
