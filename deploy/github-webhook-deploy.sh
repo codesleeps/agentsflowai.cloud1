@@ -64,7 +64,7 @@ deploy() {
     
     # Restart PM2
     log_info "Restarting PM2..."
-    pm2 reload ecosystem.config.cjs --env production || pm2 start ecosystem.config.cjs --env production
+    pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
     pm2 save
     
     # Health check

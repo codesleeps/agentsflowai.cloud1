@@ -54,7 +54,7 @@ tar -xzf "$BACKUP_FILE" -C $APP_DIR
 
 # Restart PM2
 log_info "Restarting application..."
-pm2 reload ecosystem.config.cjs --env production
+pm2 reload ecosystem.config.js --env production
 
 # Health check
 log_info "Running health check..."
