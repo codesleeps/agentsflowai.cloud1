@@ -2,17 +2,17 @@
  * PM2 Ecosystem Configuration
  *
  * Usage:
- *   pm2 start ecosystem.config.cjs --env production
- *   pm2 reload ecosystem.config.cjs --env production
- *   pm2 stop ecosystem.config.cjs
- *   pm2 delete ecosystem.config.cjs
+ *   pm2 start ecosystem.config.mjs --env production
+ *   pm2 reload ecosystem.config.mjs --env production
+ *   pm2 stop ecosystem.config.mjs
+ *   pm2 delete ecosystem.config.mjs
  *
  * For PM2 Deploy (Option 3):
- *   pm2 deploy ecosystem.config.cjs production setup
- *   pm2 deploy ecosystem.config.cjs production
+ *   pm2 deploy ecosystem.config.mjs production setup
+ *   pm2 deploy ecosystem.config.mjs production
  */
 
-module.exports = {
+export default {
   apps: [
     {
       name: "agentsflow-ai",
@@ -59,10 +59,10 @@ module.exports = {
    *   1. Create directory: mkdir -p /var/www/agentsflow-ai
    *   2. Initialize git repo: cd /var/www/agentsflow-ai && git init
    *   3. Add remote: git remote add origin https://github.com/your-org/agentsflow-ai.cloud.git
-   *   4. First deploy: pm2 deploy ecosystem.config.cjs production setup
+   *   4. First deploy: pm2 deploy ecosystem.config.mjs production setup
    *
    * Deploy after push:
-   *   pm2 deploy ecosystem.config.cjs production
+   *   pm2 deploy ecosystem.config.mjs production
    */
   deploy: {
     production: {
@@ -82,7 +82,7 @@ module.exports = {
 
       // Post-deployment commands
       "post-deploy":
-        "npm ci && npm run build && pm2 reload ecosystem.config.cjs --env production",
+        "npm ci && npm run build && pm2 reload ecosystem.config.mjs --env production",
 
       // Environment variables to set on server
       env: {
