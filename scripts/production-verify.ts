@@ -1,776 +1,508 @@
 #!/usr/bin/env tsx
 /**
- * Production Readiness Verification Script
- * 
- * This script performs comprehensive checks to ensure the application
- * is ready for production deployment.
- * 
- * Usage: tsx scripts/production-verify.ts
+ * Production Verification Script
+ * Comprehensive check for AgentsFlowAI application
  */
 
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
-import { join, resolve, dirname } from 'path';
-import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
+import { execSync } from "child_process";
+import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { join } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-interface VerificationResult {
-    category: string;
-    test: string;
-    status: 'PASS' | 'FAIL' | 'WARN' | 'SKIP';
-    message?: string;
-    details?: string[];
-}
-
-const results: VerificationResult[] = [];
-const rootDir = resolve(__dirname, '..');
-
-// Color codes for terminal output
-const colors = {
-    reset: '\x1b[0m',
-    green: '\x1b[32m',
-    red: '\x1b[31m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[34m',
-    cyan: '\x1b[36m',
+const COLORS = {
+  green: "\x1b[32m",
+  red: "\x1b[31m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  reset: "\x1b[0m",
 };
 
-function log(message: string, color: keyof typeof colors = 'reset') {
-    console.log(`${colors[color]}${message}${colors.reset}`);
+const log = (
+  message: string,
+  type: "info" | "success" | "error" | "warn" = "info",
+) => {
+  const color =
+    type === "success"
+      ? COLORS.green
+      : type === "error"
+        ? COLORS.red
+        : type === "warn"
+          ? COLORS.yellow
+          : COLORS.blue;
+  console.log(`${color}[${type.toUpperCase()}]${COLORS.reset} ${message}`);
+};
+
+const logSection = (title: string) => {
+  console.log(
+    `\n${COLORS.blue}═══════════════════════════════════════${COLORS.reset}`,
+  );
+  console.log(`${COLORS.blue}  ${title}${COLORS.reset}`);
+  console.log(
+    `${COLORS.blue}═══════════════════════════════════════${COLORS.reset}\n`,
+  );
+};
+
+interface CheckResult {
+  name: string;
+  passed: boolean;
+  message: string;
 }
 
-function addResult(result: VerificationResult) {
-    results.push(result);
-    const icon = {
-        PASS: '✅',
-        FAIL: '❌',
-        WARN: '⚠️',
-        SKIP: '⏭️',
-    }[result.status];
+const results: CheckResult[] = [];
 
-    const color = {
-        PASS: 'green',
-        FAIL: 'red',
-        WARN: 'yellow',
-        SKIP: 'cyan',
-    }[result.status] as keyof typeof colors;
-
-    log(`${icon} ${result.category}: ${result.test}`, color);
-    if (result.message) {
-        log(`   ${result.message}`, color);
-    }
+function addResult(name: string, passed: boolean, message: string) {
+  results.push({ name, passed, message });
+  log(message, passed ? "success" : "error");
 }
 
-// ============================================================================
-// 1. ROUTE VERIFICATION
-// ============================================================================
+// ============================================
+// 1. ENVIRONMENT VARIABLES CHECK
+// ============================================
+function checkEnvironmentVariables() {
+  logSection("Environment Variables");
 
-function verifyRoutes() {
-    log('\n📍 Verifying Routes...', 'blue');
+  const requiredVars = [
+    "DATABASE_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "SESSION_SECRET",
+    "OPENAI_API_KEY",
+  ];
 
-    const appDir = join(rootDir, 'src', 'app');
-    const routes: string[] = [];
+  const optionalVars = [
+    "ANTHROPIC_API_KEY",
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "BETTER_AUTH_SECRET",
+    "INNGEST_SIGNING_KEY",
+    "INNGEST_EVENT_KEY",
+  ];
 
-    function scanDirectory(dir: string, basePath: string = '') {
-        try {
-            const entries = readdirSync(dir);
+  const envFile = readFileSync(".env.local", "utf-8");
 
-            for (const entry of entries) {
-                const fullPath = join(dir, entry);
-                const stat = statSync(fullPath);
+  log("Checking required environment variables...", "info");
+  let allRequiredPresent = true;
+  for (const varName of requiredVars) {
+    const present = envFile.includes(`${varName}=`);
+    addResult(
+      `ENV_${varName}`,
+      present,
+      present ? `${varName} is set` : `${varName} is MISSING`,
+    );
+    if (!present) allRequiredPresent = false;
+  }
 
-                if (stat.isDirectory()) {
-                    // Skip special Next.js directories
-                    if (entry.startsWith('_') || entry === 'api') continue;
+  log("\nChecking optional environment variables...", "info");
+  for (const varName of optionalVars) {
+    const present = envFile.includes(`${varName}=`);
+    addResult(
+      `ENV_${varName}`,
+      true,
+      present
+        ? `${varName} is set (optional)`
+        : `${varName} not set (optional)`,
+    );
+  }
 
-                    // Handle route groups (dashboard)
-                    const routePath = entry.startsWith('(') && entry.endsWith(')')
-                        ? basePath
-                        : `${basePath}/${entry}`;
+  return allRequiredPresent;
+}
 
-                    scanDirectory(fullPath, routePath);
-                } else if (entry === 'page.tsx' || entry === 'page.ts') {
-                    routes.push(basePath || '/');
-                }
-            }
-        } catch (error) {
-            addResult({
-                category: 'Routes',
-                test: 'Scan directory structure',
-                status: 'FAIL',
-                message: `Error scanning ${dir}: ${error}`,
-            });
-        }
-    }
+// ============================================
+// 2. DATABASE CONNECTIVITY CHECK
+// ============================================
+function checkDatabaseConnectivity() {
+  logSection("Database Connectivity");
 
-    scanDirectory(appDir);
-
-    addResult({
-        category: 'Routes',
-        test: 'Route discovery',
-        status: 'PASS',
-        message: `Found ${routes.length} routes`,
-        details: routes.sort(),
+  try {
+    execSync("npx prisma db push --skip-generate 2>&1", {
+      encoding: "utf-8",
+      timeout: 30000,
     });
-
-    // Verify expected routes exist
-    const expectedRoutes = [
-        '/',
-        '/welcome',
-        '/dashboard',
-        '/chat',
-        '/leads',
-        '/leads/new',
-        '/services',
-        '/appointments',
-        '/analytics',
-        '/ai-agents',
-        '/ai-agents/seo',
-        '/ai-agents/content',
-        '/ai-agents/social',
-    ];
-
-    const missingRoutes = expectedRoutes.filter(route => !routes.includes(route));
-
-    if (missingRoutes.length === 0) {
-        addResult({
-            category: 'Routes',
-            test: 'Expected routes exist',
-            status: 'PASS',
-            message: 'All expected routes are present',
-        });
-    } else {
-        addResult({
-            category: 'Routes',
-            test: 'Expected routes exist',
-            status: 'FAIL',
-            message: `Missing routes: ${missingRoutes.join(', ')}`,
-        });
-    }
+    addResult("Database Connection", true, "Database connection successful");
+    return true;
+  } catch (error: any) {
+    addResult(
+      "Database Connection",
+      false,
+      `Database connection failed: ${error.message}`,
+    );
+    return false;
+  }
 }
 
-// ============================================================================
-// 2. LINK VALIDATION
-// ============================================================================
+// ============================================
+// 3. BUILD CHECK
+// ============================================
+function checkBuild() {
+  logSection("Build Verification");
 
-function verifyLinks() {
-    log('\n🔗 Verifying Links...', 'blue');
+  try {
+    execSync("npm run build 2>&1", { encoding: "utf-8", timeout: 300000 });
+    addResult("Build", true, "Build completed successfully");
+    return true;
+  } catch (error: any) {
+    addResult("Build", false, `Build failed: ${error.message}`);
+    return false;
+  }
+}
 
-    const links: Set<string> = new Set();
-    const linkPattern = /(?:href=["']|router\.push\(["'])([^"']+)["']/g;
+// ============================================
+// 4. TYPE CHECK
+// ============================================
+function checkTypes() {
+  logSection("TypeScript Verification");
 
-    function extractLinks(dir: string) {
-        const entries = readdirSync(dir);
+  try {
+    execSync("npm run typecheck 2>&1", { encoding: "utf-8", timeout: 60000 });
+    addResult("TypeScript", true, "TypeScript check passed");
+    return true;
+  } catch (error: any) {
+    addResult("TypeScript", false, `TypeScript check failed: ${error.message}`);
+    return false;
+  }
+}
 
-        for (const entry of entries) {
-            const fullPath = join(dir, entry);
-            const stat = statSync(fullPath);
+// ============================================
+// 5. LINT CHECK
+// ============================================
+function checkLint() {
+  logSection("Linting");
 
-            if (stat.isDirectory()) {
-                extractLinks(fullPath);
-            } else if (entry.endsWith('.tsx') || entry.endsWith('.ts')) {
-                try {
-                    const content = readFileSync(fullPath, 'utf-8');
-                    let match;
+  try {
+    execSync("npm run lint 2>&1", { encoding: "utf-8", timeout: 60000 });
+    addResult("Linting", true, "Linting passed");
+    return true;
+  } catch (error: any) {
+    addResult("Linting", false, `Linting failed: ${error.message}`);
+    return false;
+  }
+}
 
-                    while ((match = linkPattern.exec(content)) !== null) {
-                        const link = match[1];
-                        // Only track internal links (not anchors, external URLs)
-                        if (link.startsWith('/') && !link.startsWith('//')) {
-                            // Remove query params and anchors
-                            const cleanLink = link.split('?')[0].split('#')[0];
-                            links.add(cleanLink);
-                        }
-                    }
-                } catch (error) {
-                    // Skip files that can't be read
-                }
-            }
-        }
-    }
+// ============================================
+// 6. TEST CHECK
+// ============================================
+function checkTests() {
+  logSection("Tests");
 
-    extractLinks(join(rootDir, 'src'));
+  try {
+    execSync("npm run test 2>&1", { encoding: "utf-8", timeout: 120000 });
+    addResult("Tests", true, "Tests passed");
+    return true;
+  } catch (error: any) {
+    addResult("Tests", false, `Tests failed: ${error.message}`);
+    return false;
+  }
+}
 
-    addResult({
-        category: 'Links',
-        test: 'Link extraction',
-        status: 'PASS',
-        message: `Found ${links.size} unique internal links`,
-        details: Array.from(links).sort(),
+// ============================================
+// 7. ROUTES CHECK
+// ============================================
+function checkRoutes() {
+  logSection("Routes Verification");
+
+  const routes = [
+    "/",
+    "/welcome",
+    "/dashboard",
+    "/chat",
+    "/leads",
+    "/leads/new",
+    "/services",
+    "/appointments",
+    "/analytics",
+    "/ai-agents",
+    "/ai-agents/seo",
+    "/ai-agents/content",
+    "/ai-agents/social",
+    "/ai-usage",
+    "/fast-chat",
+  ];
+
+  const appDir = join(process.cwd(), "src/app");
+
+  let allRoutesExist = true;
+  for (const route of routes) {
+    const routePath = route.replace(/\//g, "(...)").slice(1);
+    const routeDir = join(
+      appDir,
+      route === "/"
+        ? "(dashboard)/dashboard"
+        : route.slice(1).replace(/\//g, ")/("),
+    );
+
+    const exists = existsSync(routeDir) || existsSync(routeDir + "/page.tsx");
+    addResult(
+      `Route ${route}`,
+      exists,
+      exists ? `${route} exists` : `${route} MISSING`,
+    );
+    if (!exists) allRoutesExist = false;
+  }
+
+  return allRoutesExist;
+}
+
+// ============================================
+// 8. API ENDPOINTS CHECK
+// ============================================
+function checkApiEndpoints() {
+  logSection("API Endpoints");
+
+  const endpoints = [
+    "/api/health",
+    "/api/leads",
+    "/api/services",
+    "/api/appointments",
+    "/api/conversations",
+    "/api/dashboard/stats",
+    "/api/ai/agents",
+    "/api/ai/config",
+    "/api/ai/usage",
+  ];
+
+  const apiDir = join(process.cwd(), "src/app/api");
+
+  let allEndpointsExist = true;
+  for (const endpoint of endpoints) {
+    const endpointPath = endpoint.slice(5).replace(/\//g, ")/(");
+    const endpointDir = join(apiDir, endpointPath);
+
+    const exists =
+      existsSync(endpointDir) || existsSync(endpointDir + "/route.ts");
+    addResult(
+      `Endpoint ${endpoint}`,
+      exists,
+      exists ? `${endpoint} exists` : `${endpoint} MISSING`,
+    );
+    if (!exists) allEndpointsExist = false;
+  }
+
+  return allEndpointsExist;
+}
+
+// ============================================
+// 9. COMPONENTS CHECK
+// ============================================
+function checkComponents() {
+  logSection("Components");
+
+  const requiredComponents = [
+    "Button",
+    "Input",
+    "Card",
+    "Sidebar",
+    "Topbar",
+    "ThemeProvider",
+    "ThemeToggle",
+  ];
+
+  const uiDir = join(process.cwd(), "src/components/ui");
+  const components = readdirSync(uiDir).filter((f) => f.endsWith(".tsx"));
+
+  let allComponentsExist = true;
+  for (const component of requiredComponents) {
+    const exists = components.some((c) =>
+      c.toLowerCase().includes(component.toLowerCase()),
+    );
+    addResult(
+      `Component ${component}`,
+      exists,
+      exists ? `${component} exists` : `${component} MISSING`,
+    );
+    if (!exists) allComponentsExist = false;
+  }
+
+  return allComponentsExist;
+}
+
+// ============================================
+// 10. DEPLOYMENT FILES CHECK
+// ============================================
+function checkDeploymentFiles() {
+  logSection("Deployment Configuration");
+
+  const deploymentFiles = [
+    "ecosystem.config.mjs",
+    "deploy/nginx.conf",
+    "deploy/setup-server.sh",
+    "deploy/deploy.sh",
+    "deploy/rollback.sh",
+    "deploy/DEPLOYMENT-CHECKLIST.md",
+    "PRODUCTION_CHECKLIST.md",
+  ];
+
+  let allFilesExist = true;
+  for (const file of deploymentFiles) {
+    const exists = existsSync(file);
+    addResult(
+      `Deploy file ${file}`,
+      exists,
+      exists ? `${file} exists` : `${file} MISSING`,
+    );
+    if (!exists) allFilesExist = false;
+  }
+
+  return allFilesExist;
+}
+
+// ============================================
+// 11. DATABASE MIGRATIONS CHECK
+// ============================================
+function checkMigrations() {
+  logSection("Database Migrations");
+
+  const migrationsDir = join(process.cwd(), "prisma/migrations");
+
+  if (!existsSync(migrationsDir)) {
+    addResult("Migrations", false, "Migrations directory MISSING");
+    return false;
+  }
+
+  const migrations = readdirSync(migrationsDir);
+  addResult(
+    "Migrations",
+    migrations.length > 0,
+    `Found ${migrations.length} migration(s)`,
+  );
+
+  // Check if migrations have been applied
+  try {
+    execSync("npx prisma migrate status 2>&1", {
+      encoding: "utf-8",
+      timeout: 30000,
     });
-
-    // Check for broken dynamic routes
-    const dynamicLinkPattern = /\/\[.*?\]/;
-    const dynamicLinks = Array.from(links).filter(link => dynamicLinkPattern.test(link));
-
-    if (dynamicLinks.length > 0) {
-        addResult({
-            category: 'Links',
-            test: 'Dynamic route links',
-            status: 'WARN',
-            message: 'Found dynamic route links (need runtime verification)',
-            details: dynamicLinks,
-        });
-    }
+    addResult("Migrations Applied", true, "Migrations are up to date");
+    return true;
+  } catch (error: any) {
+    addResult(
+      "Migrations Applied",
+      false,
+      `Migrations not applied: ${error.message}`,
+    );
+    return false;
+  }
 }
 
-// ============================================================================
-// 3. API ENDPOINT VERIFICATION
-// ============================================================================
+// ============================================
+// 12. SECURITY CHECKS
+// ============================================
+function checkSecurity() {
+  logSection("Security Configuration");
 
-function verifyApiEndpoints() {
-    log('\n🌐 Verifying API Endpoints...', 'blue');
+  const middlewarePath = join(process.cwd(), "middleware.ts");
+  if (!existsSync(middlewarePath)) {
+    addResult("Middleware", false, "middleware.ts MISSING");
+    return false;
+  }
 
-    const apiDir = join(rootDir, 'src', 'app', 'api');
-    const endpoints: string[] = [];
+  const middleware = readFileSync(middlewarePath, "utf-8");
 
-    function scanApiDirectory(dir: string, basePath: string = '/api') {
-        try {
-            const entries = readdirSync(dir);
+  const hasRateLimiting = middleware.includes("rateLimiter");
+  const hasSecurityHeaders = middleware.includes("X-Content-Type-Options");
+  const hasCSP = middleware.includes("Content-Security-Policy");
 
-            for (const entry of entries) {
-                const fullPath = join(dir, entry);
-                const stat = statSync(fullPath);
+  addResult(
+    "Rate Limiting",
+    hasRateLimiting,
+    hasRateLimiting
+      ? "Rate limiting is configured"
+      : "Rate limiting NOT configured",
+  );
+  addResult(
+    "Security Headers",
+    hasSecurityHeaders,
+    hasSecurityHeaders
+      ? "Security headers are set"
+      : "Security headers MISSING",
+  );
+  addResult(
+    "CSP Header",
+    hasCSP,
+    hasCSP ? "CSP header is configured" : "CSP header MISSING",
+  );
 
-                if (stat.isDirectory()) {
-                    // Skip test directories
-                    if (entry === '__tests__') continue;
-
-                    scanApiDirectory(fullPath, `${basePath}/${entry}`);
-                } else if (entry === 'route.ts' || entry === 'route.tsx') {
-                    endpoints.push(basePath);
-                }
-            }
-        } catch (error) {
-            // Directory might not exist
-        }
-    }
-
-    scanApiDirectory(apiDir);
-
-    addResult({
-        category: 'API',
-        test: 'Endpoint discovery',
-        status: 'PASS',
-        message: `Found ${endpoints.length} API endpoints`,
-        details: endpoints.sort(),
-    });
-
-    // Verify critical endpoints exist
-    const criticalEndpoints = [
-        '/api/health',
-        '/api/leads',
-        '/api/services',
-        '/api/appointments',
-        '/api/conversations',
-        '/api/dashboard/stats',
-    ];
-
-    const missingEndpoints = criticalEndpoints.filter(ep => !endpoints.includes(ep));
-
-    if (missingEndpoints.length === 0) {
-        addResult({
-            category: 'API',
-            test: 'Critical endpoints exist',
-            status: 'PASS',
-            message: 'All critical endpoints are present',
-        });
-    } else {
-        addResult({
-            category: 'API',
-            test: 'Critical endpoints exist',
-            status: 'FAIL',
-            message: `Missing endpoints: ${missingEndpoints.join(', ')}`,
-        });
-    }
+  return hasRateLimiting && hasSecurityHeaders && hasCSP;
 }
 
-// ============================================================================
-// 4. ENVIRONMENT VARIABLES
-// ============================================================================
+// ============================================
+// 13. DOCUMENTATION CHECK
+// ============================================
+function checkDocumentation() {
+  logSection("Documentation");
 
-function verifyEnvironmentVariables() {
-    log('\n🔐 Verifying Environment Variables...', 'blue');
+  const docs = ["README.md", "PRODUCTION_CHECKLIST.md"];
 
-    const requiredVars = [
-        'DATABASE_URL',
-        'NEXT_PUBLIC_APP_URL',
-    ];
+  let allDocsExist = true;
+  for (const doc of docs) {
+    const exists = existsSync(doc);
+    addResult(
+      `Doc ${doc}`,
+      exists,
+      exists ? `${doc} exists` : `${doc} MISSING`,
+    );
+    if (!exists) allDocsExist = false;
+  }
 
-    const recommendedVars = [
-        'OPENAI_API_KEY',
-        'ANTHROPIC_API_KEY',
-        'GOOGLE_GENERATIVE_AI_API_KEY',
-        'SESSION_SECRET',
-        'INNGEST_EVENT_KEY',
-        'INNGEST_SIGNING_KEY',
-    ];
-
-    // Check .env.example exists
-    const envExamplePath = join(rootDir, '.env.example');
-    if (existsSync(envExamplePath)) {
-        addResult({
-            category: 'Environment',
-            test: '.env.example exists',
-            status: 'PASS',
-        });
-    } else {
-        addResult({
-            category: 'Environment',
-            test: '.env.example exists',
-            status: 'WARN',
-            message: 'No .env.example file found',
-        });
-    }
-
-    // Note: We can't check actual values in .env as it's gitignored
-    addResult({
-        category: 'Environment',
-        test: 'Required variables',
-        status: 'WARN',
-        message: 'Ensure these are set in production',
-        details: requiredVars,
-    });
-
-    addResult({
-        category: 'Environment',
-        test: 'Recommended variables',
-        status: 'WARN',
-        message: 'At least one AI provider key should be set',
-        details: recommendedVars,
-    });
+  return allDocsExist;
 }
 
-// ============================================================================
-// 5. BUILD VERIFICATION
-// ============================================================================
-
-function verifyBuild() {
-    log('\n🏗️  Verifying Build Configuration...', 'blue');
-
-    // Check package.json scripts
-    const packageJsonPath = join(rootDir, 'package.json');
-    try {
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-
-        const requiredScripts = ['build', 'start', 'dev', 'lint', 'typecheck'];
-        const missingScripts = requiredScripts.filter(script => !packageJson.scripts[script]);
-
-        if (missingScripts.length === 0) {
-            addResult({
-                category: 'Build',
-                test: 'Required npm scripts',
-                status: 'PASS',
-                message: 'All required scripts are present',
-            });
-        } else {
-            addResult({
-                category: 'Build',
-                test: 'Required npm scripts',
-                status: 'FAIL',
-                message: `Missing scripts: ${missingScripts.join(', ')}`,
-            });
-        }
-
-        // Check Node.js version requirement
-        if (packageJson.engines?.node) {
-            addResult({
-                category: 'Build',
-                test: 'Node.js version specified',
-                status: 'PASS',
-                message: `Requires Node.js ${packageJson.engines.node}`,
-            });
-        } else {
-            addResult({
-                category: 'Build',
-                test: 'Node.js version specified',
-                status: 'WARN',
-                message: 'No Node.js version requirement specified',
-            });
-        }
-    } catch (error) {
-        addResult({
-            category: 'Build',
-            test: 'package.json validation',
-            status: 'FAIL',
-            message: `Error reading package.json: ${error}`,
-        });
-    }
-
-    // Check TypeScript configuration
-    const tsconfigPath = join(rootDir, 'tsconfig.json');
-    if (existsSync(tsconfigPath)) {
-        addResult({
-            category: 'Build',
-            test: 'TypeScript configuration',
-            status: 'PASS',
-            message: 'tsconfig.json exists',
-        });
-    } else {
-        addResult({
-            category: 'Build',
-            test: 'TypeScript configuration',
-            status: 'FAIL',
-            message: 'tsconfig.json not found',
-        });
-    }
-
-    // Check Next.js configuration
-    const nextConfigPath = join(rootDir, 'next.config.js');
-    if (existsSync(nextConfigPath)) {
-        addResult({
-            category: 'Build',
-            test: 'Next.js configuration',
-            status: 'PASS',
-            message: 'next.config.js exists',
-        });
-    } else {
-        addResult({
-            category: 'Build',
-            test: 'Next.js configuration',
-            status: 'WARN',
-            message: 'next.config.js not found',
-        });
-    }
-}
-
-// ============================================================================
-// 6. SECURITY VERIFICATION
-// ============================================================================
-
-function verifySecurity() {
-    log('\n🔒 Verifying Security Configuration...', 'blue');
-
-    // Check middleware exists
-    const middlewarePath = join(rootDir, 'middleware.ts');
-    if (existsSync(middlewarePath)) {
-        const middlewareContent = readFileSync(middlewarePath, 'utf-8');
-
-        addResult({
-            category: 'Security',
-            test: 'Middleware exists',
-            status: 'PASS',
-        });
-
-        // Check for rate limiting
-        if (middlewareContent.includes('rateLimiter') || middlewareContent.includes('rate-limit')) {
-            addResult({
-                category: 'Security',
-                test: 'Rate limiting configured',
-                status: 'PASS',
-            });
-        } else {
-            addResult({
-                category: 'Security',
-                test: 'Rate limiting configured',
-                status: 'WARN',
-                message: 'Rate limiting not detected in middleware',
-            });
-        }
-
-        // Check for CORS handling
-        if (middlewareContent.includes('cors') || middlewareContent.includes('CORS')) {
-            addResult({
-                category: 'Security',
-                test: 'CORS handling',
-                status: 'PASS',
-            });
-        } else {
-            addResult({
-                category: 'Security',
-                test: 'CORS handling',
-                status: 'WARN',
-                message: 'CORS handling not detected',
-            });
-        }
-
-        // Check for security headers
-        const securityHeaders = [
-            'X-Content-Type-Options',
-            'X-Frame-Options',
-            'X-XSS-Protection',
-            'Content-Security-Policy',
-            'Strict-Transport-Security',
-        ];
-
-        const foundHeaders = securityHeaders.filter(header =>
-            middlewareContent.includes(header)
-        );
-
-        if (foundHeaders.length >= 3) {
-            addResult({
-                category: 'Security',
-                test: 'Security headers',
-                status: 'PASS',
-                message: `${foundHeaders.length}/${securityHeaders.length} headers configured`,
-                details: foundHeaders,
-            });
-        } else {
-            addResult({
-                category: 'Security',
-                test: 'Security headers',
-                status: 'WARN',
-                message: `Only ${foundHeaders.length}/${securityHeaders.length} headers found`,
-                details: foundHeaders,
-            });
-        }
-    } else {
-        addResult({
-            category: 'Security',
-            test: 'Middleware exists',
-            status: 'FAIL',
-            message: 'middleware.ts not found',
-        });
-    }
-
-    // Check for .gitignore
-    const gitignorePath = join(rootDir, '.gitignore');
-    if (existsSync(gitignorePath)) {
-        const gitignoreContent = readFileSync(gitignorePath, 'utf-8');
-
-        const sensitiveFiles = ['.env', '.env.local', '.env.production'];
-        const protectedFiles = sensitiveFiles.filter(file =>
-            gitignoreContent.includes(file)
-        );
-
-        if (protectedFiles.length === sensitiveFiles.length) {
-            addResult({
-                category: 'Security',
-                test: 'Sensitive files in .gitignore',
-                status: 'PASS',
-                message: 'Environment files are gitignored',
-            });
-        } else {
-            addResult({
-                category: 'Security',
-                test: 'Sensitive files in .gitignore',
-                status: 'FAIL',
-                message: 'Some environment files may not be gitignored',
-            });
-        }
-    }
-}
-
-// ============================================================================
-// 7. DATABASE VERIFICATION
-// ============================================================================
-
-function verifyDatabase() {
-    log('\n🗄️  Verifying Database Configuration...', 'blue');
-
-    // Check Prisma schema
-    const schemaPath = join(rootDir, 'prisma', 'schema.prisma');
-    if (existsSync(schemaPath)) {
-        addResult({
-            category: 'Database',
-            test: 'Prisma schema exists',
-            status: 'PASS',
-        });
-
-        const schemaContent = readFileSync(schemaPath, 'utf-8');
-
-        // Check for required models
-        const requiredModels = ['User', 'Lead', 'Service', 'Appointment', 'Conversation', 'Message'];
-        const foundModels = requiredModels.filter(model =>
-            new RegExp(`model\\s+${model}\\s*{`, 'i').test(schemaContent)
-        );
-
-        if (foundModels.length === requiredModels.length) {
-            addResult({
-                category: 'Database',
-                test: 'Required models defined',
-                status: 'PASS',
-                message: 'All required models are present',
-                details: foundModels,
-            });
-        } else {
-            const missing = requiredModels.filter(m => !foundModels.includes(m));
-            addResult({
-                category: 'Database',
-                test: 'Required models defined',
-                status: 'WARN',
-                message: `Missing models: ${missing.join(', ')}`,
-            });
-        }
-    } else {
-        addResult({
-            category: 'Database',
-            test: 'Prisma schema exists',
-            status: 'FAIL',
-            message: 'prisma/schema.prisma not found',
-        });
-    }
-
-    // Check for migrations directory
-    const migrationsPath = join(rootDir, 'prisma', 'migrations');
-    if (existsSync(migrationsPath)) {
-        const migrations = readdirSync(migrationsPath).filter(f =>
-            statSync(join(migrationsPath, f)).isDirectory()
-        );
-
-        addResult({
-            category: 'Database',
-            test: 'Migrations exist',
-            status: 'PASS',
-            message: `Found ${migrations.length} migrations`,
-        });
-    } else {
-        addResult({
-            category: 'Database',
-            test: 'Migrations exist',
-            status: 'WARN',
-            message: 'No migrations directory found',
-        });
-    }
-}
-
-// ============================================================================
-// 8. DEPLOYMENT CONFIGURATION
-// ============================================================================
-
-function verifyDeployment() {
-    log('\n🚀 Verifying Deployment Configuration...', 'blue');
-
-    // Check PM2 ecosystem config
-    const pm2Configs = ['ecosystem.config.mjs', 'ecosystem.config.js', 'ecosystem.config.cjs'];
-    const pm2Config = pm2Configs.find(config => existsSync(join(rootDir, config)));
-
-    if (pm2Config) {
-        addResult({
-            category: 'Deployment',
-            test: 'PM2 configuration',
-            status: 'PASS',
-            message: `Found ${pm2Config}`,
-        });
-    } else {
-        addResult({
-            category: 'Deployment',
-            test: 'PM2 configuration',
-            status: 'WARN',
-            message: 'No PM2 ecosystem config found',
-        });
-    }
-
-    // Check for deployment scripts
-    const deployDir = join(rootDir, 'deploy');
-    if (existsSync(deployDir)) {
-        const deployScripts = readdirSync(deployDir).filter(f =>
-            f.endsWith('.sh') || f.endsWith('.md')
-        );
-
-        addResult({
-            category: 'Deployment',
-            test: 'Deployment scripts',
-            status: 'PASS',
-            message: `Found ${deployScripts.length} deployment files`,
-            details: deployScripts,
-        });
-    } else {
-        addResult({
-            category: 'Deployment',
-            test: 'Deployment scripts',
-            status: 'WARN',
-            message: 'No deploy directory found',
-        });
-    }
-
-    // Check for Docker configuration
-    const dockerfilePath = join(rootDir, 'Dockerfile');
-    if (existsSync(dockerfilePath)) {
-        addResult({
-            category: 'Deployment',
-            test: 'Docker configuration',
-            status: 'PASS',
-            message: 'Dockerfile exists',
-        });
-    } else {
-        addResult({
-            category: 'Deployment',
-            test: 'Docker configuration',
-            status: 'SKIP',
-            message: 'No Dockerfile (using PM2 deployment)',
-        });
-    }
-}
-
-// ============================================================================
+// ============================================
 // MAIN EXECUTION
-// ============================================================================
-
+// ============================================
 async function main() {
-    log('\n╔════════════════════════════════════════════════════════════╗', 'cyan');
-    log('║   AgentsFlowAI - Production Readiness Verification        ║', 'cyan');
-    log('╚════════════════════════════════════════════════════════════╝\n', 'cyan');
+  console.log(
+    `\n${COLORS.blue}╔═══════════════════════════════════════════╗${COLORS.reset}`,
+  );
+  console.log(
+    `${COLORS.blue}║  Production Verification for AgentsFlowAI  ║${COLORS.reset}`,
+  );
+  console.log(
+    `${COLORS.blue}╚═══════════════════════════════════════════╝${COLORS.reset}\n`,
+  );
 
-    try {
-        verifyRoutes();
-        verifyLinks();
-        verifyApiEndpoints();
-        verifyEnvironmentVariables();
-        verifyBuild();
-        verifySecurity();
-        verifyDatabase();
-        verifyDeployment();
+  const startTime = Date.now();
 
-        // Summary
-        log('\n' + '═'.repeat(60), 'cyan');
-        log('VERIFICATION SUMMARY', 'cyan');
-        log('═'.repeat(60) + '\n', 'cyan');
+  // Run all checks
+  checkEnvironmentVariables();
+  checkDatabaseConnectivity();
+  checkMigrations();
+  checkTypes();
+  checkLint();
+  checkTests();
+  checkRoutes();
+  checkApiEndpoints();
+  checkComponents();
+  checkSecurity();
+  checkDeploymentFiles();
+  checkDocumentation();
+  checkBuild();
 
-        const summary = {
-            PASS: results.filter(r => r.status === 'PASS').length,
-            FAIL: results.filter(r => r.status === 'FAIL').length,
-            WARN: results.filter(r => r.status === 'WARN').length,
-            SKIP: results.filter(r => r.status === 'SKIP').length,
-        };
+  // Summary
+  logSection("Summary");
 
-        log(`✅ Passed:  ${summary.PASS}`, 'green');
-        log(`❌ Failed:  ${summary.FAIL}`, 'red');
-        log(`⚠️  Warnings: ${summary.WARN}`, 'yellow');
-        log(`⏭️  Skipped: ${summary.SKIP}`, 'cyan');
-        log(`📊 Total:   ${results.length}\n`);
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
+  const total = results.length;
 
-        // Show failures and warnings
-        const issues = results.filter(r => r.status === 'FAIL' || r.status === 'WARN');
-        if (issues.length > 0) {
-            log('\n' + '═'.repeat(60), 'yellow');
-            log('ISSUES REQUIRING ATTENTION', 'yellow');
-            log('═'.repeat(60) + '\n', 'yellow');
+  console.log(`${COLORS.green}Passed: ${passed}/${total}${COLORS.reset}`);
+  console.log(
+    `${failed > 0 ? COLORS.red : COLORS.green}Failed: ${failed}/${total}${COLORS.reset}`,
+  );
 
-            issues.forEach(issue => {
-                const icon = issue.status === 'FAIL' ? '❌' : '⚠️';
-                const color = issue.status === 'FAIL' ? 'red' : 'yellow';
-                log(`${icon} [${issue.category}] ${issue.test}`, color);
-                if (issue.message) {
-                    log(`   ${issue.message}`, color);
-                }
-                if (issue.details && issue.details.length > 0) {
-                    issue.details.forEach(detail => {
-                        log(`   - ${detail}`, color);
-                    });
-                }
-                log('');
-            });
-        }
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  console.log(
+    `\n${COLORS.blue}Verification completed in ${duration}s${COLORS.reset}\n`,
+  );
 
-        // Exit code
-        const exitCode = summary.FAIL > 0 ? 1 : 0;
-
-        if (exitCode === 0) {
-            log('\n✨ All critical checks passed! Application is ready for production.', 'green');
-        } else {
-            log('\n⚠️  Some critical checks failed. Please address the issues above.', 'red');
-        }
-
-        process.exit(exitCode);
-
-    } catch (error) {
-        log(`\n❌ Fatal error during verification: ${error}`, 'red');
-        process.exit(1);
+  if (failed > 0) {
+    console.log(`${COLORS.red}Issues found:${COLORS.reset}`);
+    for (const result of results.filter((r) => !r.passed)) {
+      console.log(`  - ${result.name}: ${result.message}`);
     }
+  }
+
+  console.log(
+    `\n${passed === total ? COLORS.green : COLORS.yellow}Production Readiness: ${passed === total ? "100% - READY" : `${((passed / total) * 100).toFixed(0)}% - NEEDS WORK`}${COLORS.reset}\n`,
+  );
+
+  process.exit(failed > 0 ? 1 : 0);
 }
 
-// Run the verification
-main();
+main().catch(console.error);
