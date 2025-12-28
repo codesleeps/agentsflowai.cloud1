@@ -4,6 +4,7 @@ import type {
   Lead,
   Service,
   DashboardStats,
+  ComprehensiveAnalytics,
   Conversation,
   Message,
   Appointment,
@@ -21,6 +22,34 @@ export function useDashboardStats() {
   return useSWR<DashboardStats, Error>("/dashboard/stats", fetcher, {
     refreshInterval: 30000, // Refresh every 30 seconds
   });
+}
+
+// Comprehensive Analytics
+export function useComprehensiveAnalytics() {
+  return useSWR<ComprehensiveAnalytics, Error>(
+    "/analytics/comprehensive",
+    fetcher,
+    {
+      refreshInterval: 60000, // Refresh every minute
+    },
+  );
+}
+
+// Notifications
+export function useNotifications() {
+  return useSWR("/notifications", fetcher, {
+    refreshInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export async function markNotificationsAsRead(notificationIds: string[]) {
+  try {
+    return await apiClient
+      .post("/notifications", { notificationIds })
+      .then((res) => res.data);
+  } finally {
+    await mutate("/notifications");
+  }
 }
 
 // Leads

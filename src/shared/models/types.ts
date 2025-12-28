@@ -86,6 +86,10 @@ export interface AnalyticsEvent {
   created_at: string;
 }
 
+// ============================================
+// DASHBOARD & ANALYTICS TYPES
+// ============================================
+
 export interface DashboardStats {
   totalLeads: number;
   qualifiedLeads: number;
@@ -96,6 +100,105 @@ export interface DashboardStats {
   leadsByStatus: { status: string; count: number }[];
   leadsBySource: { source: string; count: number }[];
   recentLeads: Lead[];
+  // Additional analytics
+  monthlyGrowth?: {
+    current: number;
+    previous: number;
+    percentage: number;
+  };
+  aiUsage?: {
+    requestsThisMonth: number;
+  };
+  emailMetrics?: {
+    totalSent: number;
+    totalOpened: number;
+    totalClicked: number;
+    openRate: number;
+    clickRate: number;
+  };
+}
+
+export interface ComprehensiveAnalytics {
+  // Lead Analytics
+  leadTrends: {
+    monthly: { month: string; leads: number; qualified: number; won: number }[];
+    statusDistribution: { status: string; count: number; percentage: number }[];
+    sourceAnalysis: { source: string; count: number; conversionRate: number }[];
+    scoreDistribution: { range: string; count: number }[];
+  };
+
+  // Conversation Analytics
+  conversationMetrics: {
+    totalConversations: number;
+    activeConversations: number;
+    avgResponseTime: number;
+    sentimentAnalysis: { sentiment: string; count: number }[];
+    channelPerformance: {
+      channel: string;
+      conversations: number;
+      satisfaction: number;
+    }[];
+  };
+
+  // AI Performance
+  aiMetrics: {
+    totalRequests: number;
+    successfulRequests: number;
+    avgResponseTime: number;
+    costAnalysis: { provider: string; requests: number; cost: number }[];
+    modelUsage: { model: string; requests: number; avgTokens: number }[];
+  };
+
+  // Revenue Analytics
+  revenueData: {
+    totalRevenue: number;
+    monthlyRevenue: { month: string; revenue: number; deals: number }[];
+    averageDealSize: number;
+    revenueBySource: { source: string; revenue: number; deals: number }[];
+  };
+
+  // Email Campaign Performance
+  emailAnalytics: {
+    totalCampaigns: number;
+    totalEmailsSent: number;
+    openRate: number;
+    clickRate: number;
+    conversionRate: number;
+    topPerformingCampaigns: {
+      name: string;
+      openRate: number;
+      conversionRate: number;
+    }[];
+  };
+
+  // Appointment Analytics
+  appointmentMetrics: {
+    totalAppointments: number;
+    upcomingAppointments: number;
+    completionRate: number;
+    noShowRate: number;
+    avgDuration: number;
+    leadToAppointmentRate: number;
+  };
+
+  // Activity Tracking
+  userActivity: {
+    totalActivities: number;
+    activityByType: { type: string; count: number }[];
+    recentActivities: {
+      type: string;
+      description: string;
+      created_at: string;
+    }[];
+  };
+
+  // Predictive Analytics
+  predictions: {
+    nextMonthLeads: number;
+    projectedRevenue: number;
+    conversionProbability: number;
+    churnRisk: number;
+  };
 }
 
 export interface LeadQualificationResult {
@@ -111,6 +214,21 @@ export interface ServiceRecommendation {
   service: Service;
   matchScore: number;
   reasons: string[];
+}
+
+export interface Notification {
+  id: string;
+  type: "lead" | "appointment" | "conversation" | "system" | "ai";
+  title: string;
+  message: string;
+  data?: Record<string, unknown>;
+  read: boolean;
+  created_at: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  unreadCount: number;
 }
 
 export interface ChatMessage {

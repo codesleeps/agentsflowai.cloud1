@@ -129,8 +129,28 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalLeads ?? 0}</div>
             <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowUpRight className="h-3 w-3 text-green-500" />
-              <span className="text-green-500">+12%</span> from last month
+              {stats?.monthlyGrowth && (
+                <>
+                  <ArrowUpRight
+                    className={`h-3 w-3 ${
+                      stats.monthlyGrowth.percentage >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  />
+                  <span
+                    className={
+                      stats.monthlyGrowth.percentage >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }
+                  >
+                    {stats.monthlyGrowth.percentage >= 0 ? "+" : ""}
+                    {stats.monthlyGrowth.percentage}%
+                  </span>
+                </>
+              )}
+              from last month
             </p>
           </CardContent>
         </Card>
@@ -188,6 +208,64 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Additional Stats Row */}
+      {(stats?.aiUsage || stats?.emailMetrics) && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {stats?.aiUsage && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  AI Requests
+                </CardTitle>
+                <Bot className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.aiUsage.requestsThisMonth.toLocaleString()}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {stats?.emailMetrics && (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Email Open Rate
+                  </CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stats.emailMetrics.openRate}%
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stats.emailMetrics.totalOpened.toLocaleString()} opened
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Appointments
+                  </CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {stats?.upcomingAppointments ?? 0}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">Upcoming</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
