@@ -1,4 +1,3 @@
-
 import { createAuthClient } from "better-auth/react";
 import { getEnv } from "@/lib/env-validation";
 
@@ -18,6 +17,12 @@ export const authClient = createAuthClient({
 });
 
 export const { signIn, signUp, useSession, signOut } = authClient;
+
+// Google sign-in helper
+export async function signInWithGoogle() {
+  const baseURL = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  window.location.href = `${baseURL}/api/auth/signin/google`;
+}
 
 // Enhanced error boundary for authentication failures
 export function getAuthClient() {

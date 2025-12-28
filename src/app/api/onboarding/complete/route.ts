@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
         id: updatedUser.id,
         email: updatedUser.email,
         name: updatedUser.name,
-        onboarding_completed: updatedUser.onboarding_completed,
+        // onboarding_completed is a custom field in better-auth config
+        onboarding_completed: (updatedUser as any).onboarding_completed,
       },
       "Onboarding completed successfully",
     );

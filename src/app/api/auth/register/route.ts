@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user using Better Auth
-    const signUpResult = await auth.api.signUp({
+    // Note: TypeScript may not recognize signUp in auth.api types, but it exists
+    const signUpResult = await (auth.api as any).signUp({
       body: {
         email: validatedData.email,
         password: validatedData.password,

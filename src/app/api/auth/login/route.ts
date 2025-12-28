@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
     const validatedData = validateAndSanitize(LoginSchema, body);
 
     // Sign in using Better Auth
-    const signInResult = await auth.api.signIn({
+    // Note: TypeScript may not recognize signIn in auth.api types, but it exists
+    const signInResult = await (auth.api as any).signIn({
       body: {
         email: validatedData.email,
         password: validatedData.password,
