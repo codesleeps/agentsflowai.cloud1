@@ -418,3 +418,43 @@ export const OnboardingCompleteSchema = z.object({
     })
     .optional(),
 });
+
+// ============================================
+// REGISTRATION VALIDATION SCHEMAS
+// ============================================
+
+// Password strength validation function
+function validatePasswordStrength(password: string): boolean {
+  // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special char
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return passwordRegex.test(password);
+}
+
+export const RegistrationSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name must be less than 100 characters"),
+    email: z.string().email("Invalid email format"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be less than 128 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => validatePasswordStrength(data.password), {
+    message:
+      "Password must contain uppercase, lowercase, number, and special character",
+    path: ["password"],
+  });
+
+export const LoginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
+});
