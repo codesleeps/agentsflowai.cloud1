@@ -1,27 +1,35 @@
 import axios from "axios";
 import useSWR, { mutate } from "swr";
-import type { Lead, Service, DashboardStats, Conversation, Message, Appointment } from "@/shared/models/types";
+import type {
+  Lead,
+  Service,
+  DashboardStats,
+  Conversation,
+  Message,
+  Appointment,
+} from "@/shared/models/types";
 
 export const apiClient = axios.create({
   baseURL: "/api",
 });
 
-const fetcher = <T>(url: string) => apiClient.get<T>(url).then((res) => res.data);
+const fetcher = <T>(url: string) =>
+  apiClient.get<T>(url).then((res) => res.data);
 
 // Dashboard
 export function useDashboardStats() {
-  return useSWR<DashboardStats, Error>('/dashboard/stats', fetcher, {
-    refreshInterval: 30000 // Refresh every 30 seconds
+  return useSWR<DashboardStats, Error>("/dashboard/stats", fetcher, {
+    refreshInterval: 30000, // Refresh every 30 seconds
   });
 }
 
 // Leads
 export function useLeads(status?: string, source?: string) {
   const params = new URLSearchParams();
-  if (status) params.set('status', status);
-  if (source) params.set('source', source);
+  if (status) params.set("status", status);
+  if (source) params.set("source", source);
   const queryString = params.toString();
-  const url = `/leads${queryString ? `?${queryString}` : ''}`;
+  const url = `/leads${queryString ? `?${queryString}` : ""}`;
   return useSWR<Lead[], Error>(url, fetcher);
 }
 
@@ -40,19 +48,21 @@ export async function createLead(data: {
   notes?: string;
 }) {
   try {
-    return await apiClient.post<Lead>('/leads', data).then((res) => res.data);
+    return await apiClient.post<Lead>("/leads", data).then((res) => res.data);
   } finally {
-    await mutate((key) => typeof key === 'string' && key.startsWith('/leads'));
-    await mutate('/dashboard/stats');
+    await mutate((key) => typeof key === "string" && key.startsWith("/leads"));
+    await mutate("/dashboard/stats");
   }
 }
 
 export async function updateLead(id: string, data: Partial<Lead>) {
   try {
-    return await apiClient.patch<Lead>(`/leads/${id}`, data).then((res) => res.data);
+    return await apiClient
+      .patch<Lead>(`/leads/${id}`, data)
+      .then((res) => res.data);
   } finally {
-    await mutate((key) => typeof key === 'string' && key.startsWith('/leads'));
-    await mutate('/dashboard/stats');
+    await mutate((key) => typeof key === "string" && key.startsWith("/leads"));
+    await mutate("/dashboard/stats");
   }
 }
 
@@ -60,14 +70,14 @@ export async function deleteLead(id: string) {
   try {
     return await apiClient.delete(`/leads/${id}`).then((res) => res.data);
   } finally {
-    await mutate((key) => typeof key === 'string' && key.startsWith('/leads'));
-    await mutate('/dashboard/stats');
+    await mutate((key) => typeof key === "string" && key.startsWith("/leads"));
+    await mutate("/dashboard/stats");
   }
 }
 
 // Services
 export function useServices() {
-  return useSWR<Service[], Error>('/services', fetcher);
+  return useSWR<Service[], Error>("/services", fetcher);
 }
 
 export async function createService(data: {
@@ -78,28 +88,37 @@ export async function createService(data: {
   features?: string[];
 }) {
   try {
-    return await apiClient.post<Service>('/services', data).then((res) => res.data);
+    return await apiClient
+      .post<Service>("/services", data)
+      .then((res) => res.data);
   } finally {
-    await mutate('/services');
+    await mutate("/services");
   }
 }
 
 // Conversations
 export function useConversations(leadId?: string, status?: string) {
   const params = new URLSearchParams();
-  if (leadId) params.set('leadId', leadId);
-  if (status) params.set('status', status);
+  if (leadId) params.set("leadId", leadId);
+  if (status) params.set("status", status);
   const queryString = params.toString();
-  const url = `/conversations${queryString ? `?${queryString}` : ''}`;
+  const url = `/conversations${queryString ? `?${queryString}` : ""}`;
   return useSWR<Conversation[], Error>(url, fetcher);
 }
 
-export async function createConversation(data: { lead_id?: string; channel?: string }) {
+export async function createConversation(data: {
+  lead_id?: string;
+  channel?: string;
+}) {
   try {
-    return await apiClient.post<Conversation>('/conversations', data).then((res) => res.data);
+    return await apiClient
+      .post<Conversation>("/conversations", data)
+      .then((res) => res.data);
   } finally {
-    await mutate((key) => typeof key === 'string' && key.startsWith('/conversations'));
-    await mutate('/dashboard/stats');
+    await mutate(
+      (key) => typeof key === "string" && key.startsWith("/conversations"),
+    );
+    await mutate("/dashboard/stats");
   }
 }
 
@@ -107,17 +126,22 @@ export async function createConversation(data: { lead_id?: string; channel?: str
 export function useMessages(conversationId: string) {
   return useSWR<Message[], Error>(
     conversationId ? `/conversations/${conversationId}/messages` : null,
-    fetcher
+    fetcher,
   );
 }
 
-export async function createMessage(conversationId: string, data: {
-  role: string;
-  content: string;
-  metadata?: Record<string, unknown>;
-}) {
+export async function createMessage(
+  conversationId: string,
+  data: {
+    role: string;
+    content: string;
+    metadata?: Record<string, unknown>;
+  },
+) {
   try {
-    return await apiClient.post<Message>(`/conversations/${conversationId}/messages`, data).then((res) => res.data);
+    return await apiClient
+      .post<Message>(`/conversations/${conversationId}/messages`, data)
+      .then((res) => res.data);
   } finally {
     await mutate(`/conversations/${conversationId}/messages`);
   }
@@ -126,10 +150,10 @@ export async function createMessage(conversationId: string, data: {
 // Appointments
 export function useAppointments(leadId?: string, upcoming?: boolean) {
   const params = new URLSearchParams();
-  if (leadId) params.set('leadId', leadId);
-  if (upcoming) params.set('upcoming', 'true');
+  if (leadId) params.set("leadId", leadId);
+  if (upcoming) params.set("upcoming", "true");
   const queryString = params.toString();
-  const url = `/appointments${queryString ? `?${queryString}` : ''}`;
+  const url = `/appointments${queryString ? `?${queryString}` : ""}`;
   return useSWR<Appointment[], Error>(url, fetcher);
 }
 
@@ -143,9 +167,35 @@ export async function createAppointment(data: {
   notes?: string;
 }) {
   try {
-    return await apiClient.post<Appointment>('/appointments', data).then((res) => res.data);
+    return await apiClient
+      .post<Appointment>("/appointments", data)
+      .then((res) => res.data);
   } finally {
-    await mutate((key) => typeof key === 'string' && key.startsWith('/appointments'));
-    await mutate('/dashboard/stats');
+    await mutate(
+      (key) => typeof key === "string" && key.startsWith("/appointments"),
+    );
+    await mutate("/dashboard/stats");
   }
+}
+
+// Onboarding
+export async function completeOnboarding(data: {
+  step: string;
+  profileData?: {
+    company?: string;
+    role?: string;
+    teamSize?: string;
+  };
+}) {
+  const response = await fetch("/api/onboarding/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to complete onboarding");
+  }
+
+  return response.json();
 }

@@ -4,21 +4,23 @@ import { prisma } from "@/server-lib/prisma";
 import { nextCookies } from "better-auth/next-js";
 
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",
-    }),
-    emailAndPassword: {
-        enabled: true,
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  plugins: [nextCookies()],
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "user",
+      },
+      onboarding_completed: {
+        type: "boolean",
+        defaultValue: false,
+      },
     },
-    plugins: [
-        nextCookies(),
-    ],
-    user: {
-        additionalFields: {
-            role: {
-                type: "string",
-                defaultValue: "user",
-            },
-        },
-    }
+  },
 });

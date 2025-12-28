@@ -403,3 +403,18 @@ export const GenerateTextRequestSchema = z.object({
   reasoningEffort: z.enum(["low", "medium", "high"]).optional().default("low"),
   modelProvider: z.enum(["openai", "google"]).optional().default("openai"),
 });
+
+// ============================================
+// ONBOARDING VALIDATION SCHEMAS
+// ============================================
+
+export const OnboardingCompleteSchema = z.object({
+  step: z.enum(["welcome", "profile", "features"]),
+  profileData: z
+    .object({
+      company: z.string().max(100).optional(),
+      role: z.string().max(100).optional(),
+      teamSize: z.enum(["1", "2-10", "11-50", "51-200", "200+"]).optional(),
+    })
+    .optional(),
+});
