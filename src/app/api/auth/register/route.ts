@@ -31,12 +31,50 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user using Better Auth
-    // Note: TypeScript may not recognize signUp in auth.api types, but it exists
     const signUpResult = await (auth.api as any).signUp({
       body: {
         email: validatedData.email,
         password: validatedData.password,
         name: validatedData.name,
+      },
+    });
+
+    const userId = signUpResult.user.id;
+
+    // Create default team for the user
+    const teamName = `${validatedData.name || "User"}'s Team`;
+    const teamSlug = `team-${userId.slice(0, 8)}`;
+
+    // Create team and add user as owner
+    const team = await prisma.team.create({
+      data: {
+        name: teamName,
+        slug: teamSlug,
+        owner_id: userId,
+      },
+    });
+
+    // Add user as team owner
+    await prisma.teamMember.create({
+      data: {
+        team_id: team.id,
+        user_id: userId,
+        role: "owner",
+        status: "active",
+        joined_at: new Date(),
+      },
+    });
+
+    // Log the registration activity
+    await prisma.activityLog.create({
+      data: {
+        user_id: userId,
+        type: "USER_REGISTER",
+        description: "User registered successfully",
+        metadata: {
+          email: validatedData.email,
+          team_id: team.id,
+        },
       },
     });
 
@@ -47,9 +85,15 @@ export async function POST(request: NextRequest) {
           id: signUpResult.user.id,
           email: signUpResult.user.email,
           name: signUpResult.user.name,
+          role: "user",
+        },
+        team: {
+          id: team.id,
+          name: team.name,
+          slug: team.slug,
         },
       },
-      "Account created successfully",
+      "Account created successfully. Default team created.",
     );
   } catch (error) {
     // Handle Better Auth errors

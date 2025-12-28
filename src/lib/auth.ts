@@ -15,20 +15,16 @@ export const auth = betterAuth({
   },
   plugins: [nextCookies()],
   user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "user",
-      },
-      onboarding_completed: {
-        type: "boolean",
-        defaultValue: false,
-      },
-      emailVerified: {
-        type: "boolean",
-        defaultValue: false,
-      },
-    },
+    modelName: "User",
+  },
+  session: {
+    modelName: "Session",
+  },
+  account: {
+    modelName: "Account",
+  },
+  verification: {
+    modelName: "Verification",
   },
   // Google OAuth configuration
   google: {

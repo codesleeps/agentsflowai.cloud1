@@ -15,6 +15,12 @@ const protectedRoutes = [
   "/api/ai",
 ];
 
+// Admin-only routes
+const adminRoutes = ["/api/users", "/api/teams", "/api/api-keys"];
+
+// Routes requiring admin or team owner/admin role
+const adminTeamRoutes = ["/api/teams/"];
+
 const publicRoutes = ["/api/health", "/api/inngest"];
 
 // Routes that require authentication but not onboarding completion
@@ -34,6 +40,14 @@ const dashboardRoutes = [
 
 function isProtectedRoute(pathname: string): boolean {
   return protectedRoutes.some((route) => pathname.startsWith(route));
+}
+
+function isAdminRoute(pathname: string): boolean {
+  return adminRoutes.some((route) => pathname.startsWith(route));
+}
+
+function isAdminTeamRoute(pathname: string): boolean {
+  return adminTeamRoutes.some((route) => pathname.startsWith(route));
 }
 
 function isPublicRoute(pathname: string): boolean {
@@ -123,7 +137,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Apply authentication for protected routes
-  if (isProtectedRoute(pathname)) {
+  if (
+    isProtectedRoute(pathname) ||
+    isAdminRoute(pathname) ||
+    isAdminTeamRoute(pathname)
+  ) {
     // Special handling for Inngest routes
     if (pathname.startsWith("/api/inngest/")) {
       if (!isInngestRequest(request)) {
@@ -144,6 +162,44 @@ export async function middleware(request: NextRequest) {
           { error: "Authentication required", code: "AUTHENTICATION_ERROR" },
           { status: 401 },
         );
+      }
+
+      // Get session to check user role
+      try {
+        const session = await auth.api.getSession({
+          headers: request.headers,
+        });
+
+        if (session?.user) {
+          const user = session.user as any;
+
+          // Check admin-only routes
+          if (isAdminRoute(pathname) && user.role !== "admin") {
+            return NextResponse.json(
+              {
+                error: "Admin access required",
+                code: "INSUFFICIENT_PERMISSIONS",
+              },
+              { status: 403 },
+            );
+          }
+
+          // Check admin team routes (require admin or team owner/admin)
+          if (isAdminTeamRoute(pathname) && user.role !== "admin") {
+            // For non-admin users, additional team permission checks would be needed
+            // This is a simplified check - in production, you'd want to verify
+            // that the user has appropriate team permissions for the specific team
+            return NextResponse.json(
+              {
+                error: "Team admin access required",
+                code: "INSUFFICIENT_PERMISSIONS",
+              },
+              { status: 403 },
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Middleware role check error:", error);
       }
 
       // We allow the request to proceed. The actual token verification happens
