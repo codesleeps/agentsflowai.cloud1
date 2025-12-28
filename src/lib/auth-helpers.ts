@@ -1,23 +1,13 @@
-// Mock session implementation for testing
-async function getServerSession(request: NextRequest) {
-  // For testing purposes, return a mock session
-  return {
-    user: {
-      id: "test-user",
-      name: "Test User",
-      email: "test@example.com",
-      image: null,
-    },
-  };
-}
 import { NextRequest } from "next/server";
 import { getEnv } from "./env-validation";
+import { auth } from "@/lib/auth";
 
 export interface AuthenticatedUser {
   id: string;
   name: string;
   email: string;
   image?: string;
+  role?: string;
 }
 
 export interface AuthResult {
@@ -34,42 +24,46 @@ export async function getServerSessionFromRequest(
 ): Promise<AuthResult> {
   const env = getEnv();
 
-  // Check for development mode bypass
-  if (
-    env.NODE_ENV === "development" &&
-    env.NEXT_PUBLIC_DEV_USER_NAME &&
-    env.NEXT_PUBLIC_DEV_USER_EMAIL
-  ) {
-    return {
-      authenticated: true,
-      user: {
-        id: "dev-user",
-        name: env.NEXT_PUBLIC_DEV_USER_NAME,
-        email: env.NEXT_PUBLIC_DEV_USER_EMAIL,
-        image: env.NEXT_PUBLIC_DEV_USER_IMAGE,
-      },
-    };
-  }
-
   try {
-    // Extract session from request
-    const session = await getServerSession(request);
+    // Check for real session first
+    const sessionCallback = await auth.api.getSession({
+      headers: request.headers
+    });
 
-    if (!session) {
+    if (sessionCallback?.user) {
       return {
-        authenticated: false,
-        error: "No session found",
+        authenticated: true,
+        user: {
+          id: sessionCallback.user.id,
+          name: sessionCallback.user.name,
+          email: sessionCallback.user.email,
+          image: sessionCallback.user.image || undefined,
+          role: (sessionCallback.user as any).role,
+        },
+      };
+    }
+
+    // Check for development mode bypass (only if no real session)
+    if (
+      env.NODE_ENV === "development" &&
+      env.NEXT_PUBLIC_DEV_USER_NAME &&
+      env.NEXT_PUBLIC_DEV_USER_EMAIL
+    ) {
+      return {
+        authenticated: true,
+        user: {
+          id: "dev-user",
+          name: env.NEXT_PUBLIC_DEV_USER_NAME,
+          email: env.NEXT_PUBLIC_DEV_USER_EMAIL,
+          image: env.NEXT_PUBLIC_DEV_USER_IMAGE,
+          role: "admin", // Assume admin for dev user
+        },
       };
     }
 
     return {
-      authenticated: true,
-      user: {
-        id: session.user.id,
-        name: session.user.name || "",
-        email: session.user.email || "",
-        image: session.user.image,
-      },
+      authenticated: false,
+      error: "No session found",
     };
   } catch (error) {
     console.error("Session verification failed:", error);
@@ -118,4 +112,25 @@ export function isInngestRequest(request: NextRequest): boolean {
 
   // Basic signature verification (Inngest would have more sophisticated verification)
   return inngestKey === env.INNGEST_SIGNING_KEY;
+}
+
+/**
+ * Require specific role for API routes
+ */
+export async function requireRole(
+  request: NextRequest,
+  allowedRoles: string[]
+): Promise<AuthenticatedUser> {
+  const user = await requireAuth(request);
+  // Allow admin to access everything if not explicitly forbidden? 
+  // Or just strict check.
+  // We'll do strict check, but assuming 'admin' should probably have access.
+  if (!user.role || !allowedRoles.includes(user.role)) {
+    // If user is admin, allow? (Optional policy, but common)
+    if (user.role === 'admin') return user;
+
+    throw new Error("Insufficient permissions");
+  }
+
+  return user;
 }

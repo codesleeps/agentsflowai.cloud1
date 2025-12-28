@@ -1,4 +1,4 @@
-import { organizationClient } from "better-auth/client/plugins";
+
 import { createAuthClient } from "better-auth/react";
 import { getEnv } from "@/lib/env-validation";
 
@@ -15,8 +15,9 @@ if (env.NODE_ENV === "production" && !baseURL.startsWith("https://")) {
 
 export const authClient = createAuthClient({
   baseURL,
-  plugins: [organizationClient()],
 });
+
+export const { signIn, signUp, useSession, signOut } = authClient;
 
 // Enhanced error boundary for authentication failures
 export function getAuthClient() {

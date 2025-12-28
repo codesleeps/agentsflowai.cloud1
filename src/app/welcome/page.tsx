@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/client-lib/auth-client";
+import { authClient, signIn } from "@/client-lib/auth-client";
 import {
   Bot,
   MessageSquare,
@@ -207,13 +207,23 @@ export default function WelcomePage() {
     setIsLoggingIn(true);
 
     try {
-      // Mock login for demo purposes
-      toast.success("Welcome back!");
-      router.replace("/dashboard");
+      await signIn.email({
+        email: loginForm.email,
+        password: loginForm.password,
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Welcome back!");
+            router.push("/dashboard");
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+            setIsLoggingIn(false);
+          }
+        }
+      });
     } catch (err) {
       toast.error("An error occurred during login");
       console.error(err);
-    } finally {
       setIsLoggingIn(false);
     }
   };
@@ -562,7 +572,7 @@ export default function WelcomePage() {
                     variant={plan.popular ? "default" : "outline"}
                     asChild
                   >
-                    <Link href="/chat">Start Free Trial</Link>
+                    <Link href="/sign-up">Start Free Trial</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -772,7 +782,7 @@ export default function WelcomePage() {
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <Button size="lg" variant="secondary" asChild>
-                <Link href="/chat">
+                <Link href="/sign-up">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>

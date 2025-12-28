@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { rateLimiter } from './src/lib/rate-limiter';
 import { handleCors } from './src/lib/cors';
-import { getServerSessionFromRequest, isInngestRequest } from './src/lib/auth-helpers';
+import { isInngestRequest } from './src/lib/auth-helpers';
 
 // Define protected route patterns
 const protectedRoutes = [
   '/api/leads',
-  '/api/appointments', 
+  '/api/appointments',
   '/api/conversations',
   '/api/services',
   '/api/dashboard',
@@ -50,17 +50,17 @@ export async function middleware(request: NextRequest) {
   // Apply rate limiting to all requests except health check
   if (pathname !== '/api/health' && !rateLimiter.shouldSkip(request)) {
     const rateLimitResult = rateLimiter.check(request);
-    
+
     if (!rateLimitResult.allowed) {
       const response = NextResponse.json(
         { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
         { status: 429 }
       );
-      
+
       response.headers.set('X-RateLimit-Limit', '60');
       response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
       response.headers.set('X-RateLimit-Reset', rateLimitResult.resetTime.toString());
-      
+
       return response;
     }
 
@@ -90,19 +90,22 @@ export async function middleware(request: NextRequest) {
         );
       }
     } else {
-      // Regular authentication for other protected routes
-      const authResult = await getServerSessionFromRequest(request);
-      
-      if (!authResult.authenticated) {
+      // Check for session cookie
+      // We check both standard and secure cookies
+      const sessionToken = request.cookies.get("better-auth.session_token") ||
+        request.cookies.get("__Secure-better-auth.session_token");
+
+      if (!sessionToken) {
         return NextResponse.json(
           { error: 'Authentication required', code: 'AUTHENTICATION_ERROR' },
           { status: 401 }
         );
       }
 
-      // Add user ID to request headers for downstream use
+      // We allow the request to proceed. The actual token verification happens 
+      // in the API route handler or Server Component using requireAuth().
+      // This avoids using Prisma config in Edge Middleware.
       const response = NextResponse.next();
-      response.headers.set('X-User-Id', authResult.user!.id);
       return response;
     }
   }
