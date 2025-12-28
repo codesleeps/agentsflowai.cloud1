@@ -10,6 +10,10 @@ import {
   Calendar,
   Bot,
   Globe,
+  Settings,
+  User,
+  Users as TeamIcon,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,6 +57,13 @@ const mainNavItems = [
   { href: "/welcome", label: "Website", icon: Globe },
 ];
 
+const settingsNavItems = [
+  { href: "/profile", label: "Profile", icon: User },
+  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/teams", label: "Teams", icon: TeamIcon },
+  { href: "/activity", label: "Activity", icon: Activity },
+];
+
 export function Sidebar() {
   const { data: session } = getAuthClient();
   const { data: activeOrganization } = getAuthActiveOrganization();
@@ -89,6 +100,23 @@ export function Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                    <Link href={item.href}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild isActive={pathname === item.href}>
                     <Link href={item.href}>
@@ -145,15 +173,27 @@ export function Sidebar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => (window.location.href = "/dashboard")}
+                    onClick={() => (window.location.href = "/profile")}
                   >
-                    Dashboard <ExternalLink className="ml-auto h-4 w-4" />
+                    Profile <ExternalLink className="ml-auto h-4 w-4" />
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => (window.location.href = "/chat")}
+                    onClick={() => (window.location.href = "/settings")}
                   >
-                    AI Chat <ExternalLink className="ml-auto h-4 w-4" />
+                    Settings <ExternalLink className="ml-auto h-4 w-4" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => (window.location.href = "/teams")}
+                  >
+                    Teams <ExternalLink className="ml-auto h-4 w-4" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => (window.location.href = "/activity")}
+                  >
+                    Activity <ExternalLink className="ml-auto h-4 w-4" />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

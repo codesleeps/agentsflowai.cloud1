@@ -7,13 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User roles enum
+enum UserRole {
+  admin
+  user
+  viewer
+}
+
 model User {
   id            String          @id @default(uuid())
   email         String          @unique
   name          String?
   emailVerified Boolean?
   image         String?
-  role          String          @default("user")
+  role          UserRole       @default(user)
   onboarding_completed Boolean @default(false)
   banned        Boolean?
   banReason     String?
@@ -24,11 +31,168 @@ model User {
 
   sessions      Session[]
   accounts      Account[]
+  apiKeys       ApiKey[]
 
+  // Profile fields
+  bio           String?
+  phone         String?
+  timezone      String?
+  locale        String?
+  avatar_url    String?
+  cover_image   String?
+  website       String?
+  linkedin_url  String?
+  twitter_handle String?
+  
+  // Relations
+  ownedTeams    Team[]         @relation("TeamOwner")
+  teamMemberships TeamMember[]
+  activities    ActivityLog[]
+  
   AIModelConfig AIModelConfig[]
   AIModelUsage  AIModelUsage[]
 
   @@map("users")
+}
+
+// ============================================
+// TEAM MANAGEMENT MODELS
+// ============================================
+
+// Team roles enum
+enum TeamRole {
+  owner
+  admin
+  member
+  viewer
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo_url    String?
+  website     String?
+  
+  // Settings
+  is_active   Boolean  @default(true)
+  
+  // Owner relation
+  owner_id    String
+  owner       User     @relation("TeamOwner", fields: [owner_id], references: [id])
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  members   TeamMember[]
+  
+  @@index([owner_id])
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String    @id @default(uuid())
+  team_id   String
+  user_id   String
+  role      TeamRole  @default(member)
+  
+  // Additional permissions specific to this team membership
+  permissions String[] @default([])
+  
+  // Status
+  status    String    @default("active") // 'active' | 'invited' | 'suspended'
+  invited_at DateTime @default(now())
+  joined_at  DateTime?
+  
+  // Invitation tracking
+  invited_by String?
+  
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  team Team @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([team_id, user_id])
+  @@index([team_id])
+  @@index([user_id])
+  @@map("team_members")
+}
+
+// ============================================
+// USER ACTIVITY LOGGING MODELS
+// ============================================
+
+// Activity types enum
+enum ActivityType {
+  // User actions
+  USER_LOGIN
+  USER_LOGOUT
+  USER_REGISTER
+  USER_UPDATE_PROFILE
+  USER_CHANGE_PASSWORD
+  USER_DELETE_ACCOUNT
+  
+  // Team actions
+  TEAM_CREATE
+  TEAM_UPDATE
+  TEAM_DELETE
+  TEAM_INVITE_MEMBER
+  TEAM_REMOVE_MEMBER
+  TEAM_UPDATE_MEMBER_ROLE
+  
+  // Lead actions
+  LEAD_CREATE
+  LEAD_UPDATE
+  LEAD_DELETE
+  LEAD_VIEW
+  
+  // AI Agent actions
+  AGENT_CREATE
+  AGENT_UPDATE
+  AGENT_DELETE
+  AGENT_RUN
+  
+  // API Key actions
+  APIKEY_CREATE
+  APIKEY_REVOKE
+  
+  // Settings actions
+  SETTINGS_UPDATE
+  
+  // General
+  PAGE_VIEW
+  EXPORT_DATA
+}
+
+model ActivityLog {
+  id          String       @id @default(uuid())
+  user_id     String?
+  
+  // Activity details
+  type        ActivityType
+  description String
+  metadata    Json?
+  
+  // Request context
+  ip_address  String?
+  user_agent  String?
+  
+  // Resource context (optional)
+  resource_type String?
+  resource_id   String?
+  
+  created_at  DateTime     @default(now())
+  
+  user User? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([type])
+  @@index([created_at])
+  @@index([resource_type, resource_id])
+  @@map("activity_logs")
 }
 
 model Session {
@@ -65,6 +229,29 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("accounts")
+}
+
+// API Key for integrations
+model ApiKey {
+  id           String   @id @default(uuid())
+  userId       String
+  name         String
+  key          String   @unique // The actual API key (hashed in application)
+  keyHash      String   @unique // Hashed version for verification
+  prefix       String   // First few chars for identification
+  permissions  String[] // List of permissions granted
+  rateLimit    Int?     // Requests per hour
+  expiresAt    DateTime?
+  lastUsedAt   DateTime?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
 }
 
 model Verification {
